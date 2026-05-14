@@ -212,7 +212,7 @@ function renderAll() {
   renderPOCountChart();
   renderProfitChart();
   renderTopCustomersIV();
-  renderMonthlyView();
+  renderMonthlyTable();
   renderDetailTable();
   renderAnalytics();
 }
