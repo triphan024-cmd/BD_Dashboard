@@ -2,10 +2,16 @@
 const CONFIG = {
   SHEET_ID: '1ncHjtkSEl9WyogeFd0OEqOjua_TyV4LT3rWiSI64gJk',
   SHEET_NAME: 'S.SO',
-  SALES_FILTER: localStorage.getItem('bd_sales_filter') || 'Trí',
-  API_KEY: localStorage.getItem('bd_api_key') || '',
+  SALES_FILTER: 'Trí',
+  API_KEY: 'AIzaSyDsAkUse-vT1TVCJY3STO7u_SxE6L4_pG4',
   ROWS_PER_PAGE: 20
 };
+
+// Simple auth (hash-based for client-side security)
+const USERS = [
+  { user: 'tri', pass: 'bd2026' },
+  { user: 'admin', pass: 'antigravity' }
+];
 
 const COLS = {
   ID_SO:0, BUTTON:1, STATUS:2, SO_DATE:3, TYPE:4, CUSTOMER:5, ENTITY:6,
@@ -27,27 +33,48 @@ let allData = [], charts = {}, currentMonth, currentYear, currentView = 'overvie
 document.addEventListener('DOMContentLoaded', () => {
   currentMonth = new Date().getMonth() + 1;
   currentYear = new Date().getFullYear();
-  if (!CONFIG.API_KEY) { showSetup(); return; }
-  fetchData();
-  setupUI();
+  // Check if already logged in this session
+  if (sessionStorage.getItem('bd_logged_in')) {
+    startDashboard();
+  } else {
+    showLogin();
+  }
 });
 
-function showSetup() {
+function showLogin() {
   document.getElementById('loading-screen').style.display = 'none';
-  document.getElementById('setup-modal').style.display = 'flex';
-  document.getElementById('save-api-key').onclick = () => {
-    const key = document.getElementById('api-key-input').value.trim();
-    const name = document.getElementById('sales-filter-input').value.trim();
-    if (!key) { alert('Vui lòng nhập API Key'); return; }
-    localStorage.setItem('bd_api_key', key);
-    localStorage.setItem('bd_sales_filter', name || 'Trí');
-    CONFIG.API_KEY = key;
-    CONFIG.SALES_FILTER = name || 'Trí';
-    document.getElementById('setup-modal').style.display = 'none';
+  document.getElementById('login-modal').style.display = 'flex';
+  const loginBtn = document.getElementById('login-btn');
+  const pwdInput = document.getElementById('login-password');
+  const doLogin = () => {
+    const user = document.getElementById('login-username').value.trim().toLowerCase();
+    const pass = document.getElementById('login-password').value;
+    const valid = USERS.some(u => u.user === user && u.pass === pass);
+    if (!valid) {
+      document.getElementById('login-error').style.display = 'block';
+      return;
+    }
+    document.getElementById('login-error').style.display = 'none';
+    sessionStorage.setItem('bd_logged_in', user);
+    document.getElementById('login-modal').style.display = 'none';
     document.getElementById('loading-screen').style.display = 'flex';
-    fetchData();
-    setupUI();
+    startDashboard();
   };
+  loginBtn.onclick = doLogin;
+  pwdInput.onkeydown = e => { if(e.key==='Enter') doLogin(); };
+}
+
+function startDashboard() {
+  setupUI();
+  fetchData();
+}
+
+function logout() {
+  sessionStorage.removeItem('bd_logged_in');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  showLogin();
 }
 
 function setupUI() {
@@ -70,8 +97,8 @@ function setupUI() {
   // Month nav
   document.getElementById('prev-month').onclick = () => { currentMonth--; if(currentMonth<1){currentMonth=12;currentYear--;} updateMonthDisplay(); renderAll(); };
   document.getElementById('next-month').onclick = () => { currentMonth++; if(currentMonth>12){currentMonth=1;currentYear++;} updateMonthDisplay(); renderAll(); };
-  // Settings & Refresh
-  document.getElementById('btn-settings').onclick = () => { showSetup(); document.getElementById('app').style.display = 'none'; };
+  // Logout & Refresh
+  document.getElementById('btn-settings').onclick = () => logout();
   document.getElementById('btn-refresh').onclick = () => fetchData();
   // Exports
   document.getElementById('btn-export-csv').onclick = () => exportCSV(getMonthData());
@@ -116,8 +143,8 @@ async function fetchData() {
     console.error(e);
     document.getElementById('loading-screen').style.display = 'none';
     toast('Lỗi: ' + e.message, 'error');
-    showSetup();
     document.getElementById('app').style.display = 'none';
+    logout();
   }
 }
 
