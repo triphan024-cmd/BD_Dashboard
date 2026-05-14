@@ -118,8 +118,9 @@ function setupUI() {
 }
 
 function updateMonthDisplay() {
-  document.getElementById('current-month').textContent = `Tháng ${currentMonth}, ${currentYear}`;
-  document.getElementById('report-month-label').textContent = `${currentMonth}/${currentYear}`;
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('current-month').textContent = `${monthNames[currentMonth-1]} ${currentYear}`;
+  document.getElementById('report-month-label').textContent = `${monthNames[currentMonth-1]} ${currentYear}`;
 }
 
 // ===== DATA FETCH =====
@@ -130,7 +131,7 @@ async function fetchData() {
     if (!res.ok) throw new Error(`API Error: ${res.status}`);
     const json = await res.json();
     const rows = json.values || [];
-    if (rows.length < 3) throw new Error('Không có dữ liệu');
+    if (rows.length < 3) throw new Error('No data found');
     // Find header row (skip empty rows at top)
     let headerIdx = rows.findIndex(r => r.some(c => c && c.toString().trim() === 'ID SO'));
     if (headerIdx === -1) headerIdx = 1; // fallback: row 2
@@ -138,14 +139,14 @@ async function fetchData() {
     allData = rows.slice(headerIdx + 1).filter(r => (r[COLS.SALES]||'').trim() === CONFIG.SALES_FILTER);
     document.getElementById('loading-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
-    document.getElementById('header-subtitle').textContent = `Team BD - ${CONFIG.SALES_FILTER}`;
-    document.getElementById('last-update').innerHTML = `<span class="badge-dot"></span><span>Cập nhật: ${new Date().toLocaleTimeString('vi')}</span>`;
-    toast(`Đã tải ${allData.length} PO thành công`, 'success');
+    document.getElementById('header-subtitle').textContent = `BD Team — ${CONFIG.SALES_FILTER}`;
+    document.getElementById('last-update').innerHTML = `<span class="badge-dot"></span><span>Updated: ${new Date().toLocaleTimeString('en')}</span>`;
+    toast(`Loaded ${allData.length} POs successfully`, 'success');
     renderAll();
   } catch(e) {
     console.error(e);
     document.getElementById('loading-screen').style.display = 'none';
-    toast('Lỗi: ' + e.message, 'error');
+    toast('Error: ' + e.message, 'error');
     document.getElementById('app').style.display = 'none';
     logout();
   }
@@ -269,7 +270,7 @@ function renderTopCustomersSO() {
   const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
   document.getElementById('top-customers-so').innerHTML = sorted.map(([name,val],i)=>
     `<div class="ranking-item"><div class="ranking-rank">${i+1}</div><div class="ranking-name" title="${name}">${name}</div><div class="ranking-value">${fmtCurrency(val)}</div></div>`
-  ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">Không có dữ liệu</p>';
+  ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
 }
 
 // ===== SECTION 2: PO XUẤT HÓA ĐƠN (IV Month/Year) =====
@@ -303,7 +304,7 @@ function renderTopCustomersIV() {
   const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
   document.getElementById('top-customers-iv').innerHTML = sorted.map(([name,val],i)=>
     `<div class="ranking-item"><div class="ranking-rank">${i+1}</div><div class="ranking-name" title="${name}">${name}</div><div class="ranking-value">${fmtCurrency(val)}</div></div>`
-  ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">Không có dữ liệu</p>';
+  ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
 }
 
 function renderProfitChart() {
@@ -329,18 +330,18 @@ function setTrend(id, cur, prev) {
   const el = document.getElementById(id);
   if(!prev) { el.textContent = ''; return; }
   const diff = ((cur-prev)/Math.abs(prev)*100).toFixed(1);
-  el.textContent = (diff >= 0 ? '↑ +' : '↓ ') + diff + '% vs tháng trước';
+  el.textContent = (diff >= 0 ? '↑ +' : '↓ ') + diff + '% vs last month';
   el.className = 'kpi-trend ' + (diff >= 0 ? 'up' : 'down');
 }
 
 // ===== CHARTS =====
 function getChartColors() {
   return {
-    primary: '#6366f1', cyan: '#06b6d4', green: '#10b981',
-    amber: '#f59e0b', rose: '#f43f5e',
-    primaryA: 'rgba(99,102,241,0.2)', cyanA: 'rgba(6,182,212,0.2)',
-    greenA: 'rgba(16,185,129,0.2)', grid: 'rgba(255,255,255,0.06)',
-    text: '#94a3b8'
+    primary: '#007aff', cyan: '#5ac8fa', green: '#34c759',
+    amber: '#ff9f0a', rose: '#ff3b30',
+    primaryA: 'rgba(0,122,255,0.12)', cyanA: 'rgba(90,200,250,0.12)',
+    greenA: 'rgba(52,199,89,0.12)', grid: 'rgba(0,0,0,0.04)',
+    text: '#86868b'
   };
 }
 
@@ -423,7 +424,7 @@ function renderTopCustomers() {
   const el = document.getElementById('top-customers-list');
   el.innerHTML = sorted.map(([name,val],i) =>
     `<div class="ranking-item"><div class="ranking-rank">${i+1}</div><div class="ranking-name" title="${name}">${name}</div><div class="ranking-value">${fmtCurrency(val)}</div></div>`
-  ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">Không có dữ liệu</p>';
+  ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
 }
 
 // ===== MONTHLY VIEW =====
@@ -479,7 +480,7 @@ function renderTable(prefix, data, page) {
   const info = document.getElementById(prefix+'-table-info');
   const pag = document.getElementById(prefix+'-pagination');
 
-  const colLabels = {ID_SO:'Mã SO',STATUS:'Trạng thái',SO_DATE:'Ngày',CUSTOMER:'Khách hàng',PO_NO:'PO No',NAME:'Sản phẩm',QTY:'SL',AMOUNT:'Giá trị',REVENUE:'Doanh thu',PROFIT:'Lợi nhuận',MARGIN:'Margin',IV_MONTH:'Tháng',IV_YEAR:'Năm',SALES_SITUATION:'Tình trạng'};
+  const colLabels = {ID_SO:'SO ID',STATUS:'Status',SO_DATE:'Date',CUSTOMER:'Customer',PO_NO:'PO No',NAME:'Product',QTY:'Qty',AMOUNT:'Amount',REVENUE:'Revenue',PROFIT:'Profit',MARGIN:'Margin',IV_MONTH:'Month',IV_YEAR:'Year',SALES_SITUATION:'Situation'};
 
   head.innerHTML = DISPLAY_COLS.map(c => `<th>${colLabels[c]||c}</th>`).join('');
 
@@ -495,9 +496,9 @@ function renderTable(prefix, data, page) {
     if(['AMOUNT','REVENUE','PROFIT'].includes(c)) return `<td style="text-align:right;font-weight:600">${fmt(num(v))}</td>`;
     if(c==='MARGIN') return `<td style="text-align:right">${v}</td>`;
     return `<td>${v}</td>`;
-  }).join('') + '</tr>').join('') || '<tr><td colspan="'+DISPLAY_COLS.length+'" style="text-align:center;padding:40px;color:var(--text-muted)">Không có dữ liệu</td></tr>';
+  }).join('') + '</tr>').join('') || '<tr><td colspan="'+DISPLAY_COLS.length+'" style="text-align:center;padding:40px;color:var(--text-muted)">No data</td></tr>';
 
-  info.textContent = `Hiển thị ${pageData.length} / ${total} dòng`;
+  info.textContent = `Showing ${pageData.length} / ${total} rows`;
 
   let pagHTML = '';
   for(let i=1;i<=Math.min(totalPages,7);i++) {
@@ -583,11 +584,11 @@ function exportCSV(data) {
   a.href = URL.createObjectURL(blob);
   a.download = `BD_Report_T${currentMonth}_${currentYear}.csv`;
   a.click();
-  toast('Đã xuất CSV thành công','success');
+  toast('CSV exported successfully','success');
 }
 
 async function exportPDF() {
-  toast('Đang tạo PDF...','');
+  toast('Generating PDF...','');
   try {
     const el = document.getElementById('view-monthly');
     const canvas = await html2canvas(el, {backgroundColor:'#0a0e1a',scale:2});
@@ -597,6 +598,6 @@ async function exportPDF() {
     const h = canvas.height * w / canvas.width;
     pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,w,h);
     pdf.save(`BD_Report_T${currentMonth}_${currentYear}.pdf`);
-    toast('Đã xuất PDF thành công','success');
-  } catch(e) { toast('Lỗi xuất PDF: '+e.message,'error'); }
+    toast('PDF exported successfully','success');
+  } catch(e) { toast('PDF error: '+e.message,'error'); }
 }

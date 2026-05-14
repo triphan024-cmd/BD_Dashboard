@@ -1,45 +1,43 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="BD Team Dashboard - Báo cáo theo dõi PO hàng tháng cho Team BD Antigravity">
-    <title>BD Dashboard | Antigravity Team Trí</title>
+    <meta name="description" content="BD Team Dashboard — Monthly PO tracking and revenue reporting">
+    <title>BD Dashboard | Business Development</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 </head>
 <body>
     <!-- Loading Screen -->
     <div id="loading-screen" class="loading-screen">
         <div class="loader-container">
-            <div class="loader-ring">
-                <div class="loader-ring-inner"></div>
-            </div>
-            <p class="loader-text">Đang tải dữ liệu...</p>
-            <p class="loader-subtext">Kết nối Google Sheets API</p>
+            <div class="loader-ring"><div class="loader-ring-inner"></div></div>
+            <p class="loader-text">Loading data...</p>
+            <p class="loader-subtext">Connecting to Google Sheets API</p>
         </div>
     </div>
 
     <!-- Login Modal -->
     <div id="login-modal" class="modal-overlay">
         <div class="modal-card">
-            <div class="modal-icon">◆</div>
-            <h2>Antigravity BD Dashboard</h2>
-            <p class="modal-desc">Đăng nhập để truy cập báo cáo Team BD</p>
-            <div id="login-error" class="login-error" style="display:none;">Sai tên đăng nhập hoặc mật khẩu</div>
+            <div class="modal-icon">🚀</div>
+            <h2>BD Team Dashboard</h2>
+            <p class="modal-desc">Sign in to access Business Development reports</p>
+            <div id="login-error" class="login-error" style="display:none;">Invalid username or password</div>
             <div class="input-group">
-                <label for="login-username">Tên đăng nhập</label>
-                <input type="text" id="login-username" placeholder="Nhập tên đăng nhập" autocomplete="username">
+                <label for="login-username">Username</label>
+                <input type="text" id="login-username" placeholder="Enter username" autocomplete="username">
             </div>
             <div class="input-group">
-                <label for="login-password">Mật khẩu</label>
-                <input type="password" id="login-password" placeholder="Nhập mật khẩu" autocomplete="current-password">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" placeholder="Enter password" autocomplete="current-password">
             </div>
-            <button id="login-btn" class="btn-primary">Đăng nhập</button>
-            <p class="modal-hint">🔒 Chỉ dành cho thành viên Team BD</p>
+            <button id="login-btn" class="btn-primary">Sign In</button>
+            <p class="modal-hint">🔒 BD Team members only</p>
         </div>
     </div>
 
@@ -49,8 +47,8 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <span class="logo-icon">◆</span>
-                    <span class="logo-text">Antigravity</span>
+                    <span class="logo-icon">🚀</span>
+                    <span class="logo-text">BD Team</span>
                 </div>
                 <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">
                     <span class="toggle-icon">‹</span>
@@ -67,45 +65,44 @@
                 </a>
                 <a href="#" class="nav-item" data-view="details">
                     <span class="nav-icon">📋</span>
-                    <span class="nav-label">Chi tiết PO</span>
+                    <span class="nav-label">PO Details</span>
                 </a>
                 <a href="#" class="nav-item" data-view="analytics">
                     <span class="nav-icon">📈</span>
-                    <span class="nav-label">Phân tích</span>
+                    <span class="nav-label">Analytics</span>
                 </a>
             </nav>
             <div class="sidebar-footer">
-                <button class="btn-settings" id="btn-settings" title="Đăng xuất">
+                <button class="btn-settings" id="btn-settings" title="Sign Out">
                     <span>🚪</span>
-                    <span class="nav-label">Đăng xuất</span>
+                    <span class="nav-label">Sign Out</span>
                 </button>
-                <button class="btn-refresh" id="btn-refresh" title="Làm mới dữ liệu">
+                <button class="btn-refresh" id="btn-refresh" title="Refresh Data">
                     <span>🔄</span>
-                    <span class="nav-label">Làm mới</span>
+                    <span class="nav-label">Refresh</span>
                 </button>
             </div>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content" id="main-content">
-            <!-- Header -->
             <header class="top-header">
                 <div class="header-left">
                     <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
                     <div>
-                         <h1 id="page-title">PO Status</h1>
-                        <p class="header-subtitle" id="header-subtitle">Team BD - Trí</p>
+                        <h1 id="page-title">PO Status</h1>
+                        <p class="header-subtitle" id="header-subtitle">BD Team — Trí</p>
                     </div>
                 </div>
                 <div class="header-right">
                     <div class="month-selector">
                         <button class="btn-month-nav" id="prev-month">‹</button>
-                        <span class="current-month" id="current-month">Tháng 5, 2026</span>
+                        <span class="current-month" id="current-month">May 2026</span>
                         <button class="btn-month-nav" id="next-month">›</button>
                     </div>
                     <div class="header-badge" id="last-update">
                         <span class="badge-dot"></span>
-                        <span>Đang kết nối...</span>
+                        <span>Connecting...</span>
                     </div>
                 </div>
             </header>
@@ -113,130 +110,78 @@
             <!-- View: PO Status -->
             <section class="view-section active" id="view-postatus">
                 <div class="kpi-grid">
-                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper"><span class="kpi-icon">📦</span></div><div class="kpi-info"><span class="kpi-label">Tổng PO nhận</span><span class="kpi-value" id="kpi-so-count">—</span></div><div class="kpi-trend" id="kpi-so-count-trend"></div></div>
-                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-amber"><span class="kpi-icon">💰</span></div><div class="kpi-info"><span class="kpi-label">Tổng Amount</span><span class="kpi-value" id="kpi-so-amount">—</span></div><div class="kpi-trend" id="kpi-so-amount-trend"></div></div>
-                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-cyan"><span class="kpi-icon">🏢</span></div><div class="kpi-info"><span class="kpi-label">Khách hàng</span><span class="kpi-value" id="kpi-so-customers">—</span></div><div class="kpi-trend" id="kpi-so-customers-trend"></div></div>
-                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-rose"><span class="kpi-icon">📊</span></div><div class="kpi-info"><span class="kpi-label">TB / Đơn hàng</span><span class="kpi-value" id="kpi-so-avg">—</span></div><div class="kpi-trend" id="kpi-so-avg-trend"></div></div>
+                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper"><span class="kpi-icon">📦</span></div><div class="kpi-info"><span class="kpi-label">Total PO Received</span><span class="kpi-value" id="kpi-so-count">—</span></div><div class="kpi-trend" id="kpi-so-count-trend"></div></div>
+                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-amber"><span class="kpi-icon">💰</span></div><div class="kpi-info"><span class="kpi-label">Total Amount</span><span class="kpi-value" id="kpi-so-amount">—</span></div><div class="kpi-trend" id="kpi-so-amount-trend"></div></div>
+                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-cyan"><span class="kpi-icon">🏢</span></div><div class="kpi-info"><span class="kpi-label">Customers</span><span class="kpi-value" id="kpi-so-customers">—</span></div><div class="kpi-trend" id="kpi-so-customers-trend"></div></div>
+                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-purple"><span class="kpi-icon">📊</span></div><div class="kpi-info"><span class="kpi-label">Avg / Order</span><span class="kpi-value" id="kpi-so-avg">—</span></div><div class="kpi-trend" id="kpi-so-avg-trend"></div></div>
                 </div>
                 <div class="charts-grid">
-                    <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>PO nhận theo tháng</h3><span class="chart-sub">SO Date</span></div><div class="chart-body"><canvas id="chart-so-monthly"></canvas></div></div>
-                    <div class="chart-card glass-card"><div class="chart-header"><h3>Trạng thái PO</h3></div><div class="chart-body"><canvas id="chart-po-status"></canvas></div></div>
+                    <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>PO Received by Month</h3><span class="chart-sub">SO Date</span></div><div class="chart-body"><canvas id="chart-so-monthly"></canvas></div></div>
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>PO Status</h3></div><div class="chart-body"><canvas id="chart-po-status"></canvas></div></div>
                 </div>
                 <div class="charts-grid">
-                    <div class="chart-card glass-card"><div class="chart-header"><h3>Top khách hàng</h3><span class="chart-sub">theo Amount</span></div><div class="chart-body"><div id="top-customers-so" class="ranking-list"></div></div></div>
-                    <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>Giá trị PO nhận theo tháng</h3><span class="chart-sub">Amount</span></div><div class="chart-body"><canvas id="chart-so-amount"></canvas></div></div>
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>Top Customers</h3><span class="chart-sub">by Amount</span></div><div class="chart-body"><div id="top-customers-so" class="ranking-list"></div></div></div>
+                    <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>PO Amount by Month</h3><span class="chart-sub">Amount</span></div><div class="chart-body"><canvas id="chart-so-amount"></canvas></div></div>
                 </div>
             </section>
 
             <!-- View: Revenue -->
             <section class="view-section" id="view-revenue">
                 <div class="kpi-grid">
-                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">🧾</span></div><div class="kpi-info"><span class="kpi-label">PO xuất HĐ</span><span class="kpi-value" id="kpi-iv-count">—</span></div><div class="kpi-trend" id="kpi-iv-count-trend"></div></div>
-                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">💵</span></div><div class="kpi-info"><span class="kpi-label">Doanh thu</span><span class="kpi-value" id="kpi-iv-revenue">—</span></div><div class="kpi-trend" id="kpi-iv-revenue-trend"></div></div>
-                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">📈</span></div><div class="kpi-info"><span class="kpi-label">Lợi nhuận</span><span class="kpi-value" id="kpi-iv-profit">—</span></div><div class="kpi-trend" id="kpi-iv-profit-trend"></div></div>
-                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">🏢</span></div><div class="kpi-info"><span class="kpi-label">Khách hàng</span><span class="kpi-value" id="kpi-iv-customers">—</span></div><div class="kpi-trend" id="kpi-iv-customers-trend"></div></div>
+                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">🧾</span></div><div class="kpi-info"><span class="kpi-label">Invoiced POs</span><span class="kpi-value" id="kpi-iv-count">—</span></div><div class="kpi-trend" id="kpi-iv-count-trend"></div></div>
+                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">💵</span></div><div class="kpi-info"><span class="kpi-label">Revenue</span><span class="kpi-value" id="kpi-iv-revenue">—</span></div><div class="kpi-trend" id="kpi-iv-revenue-trend"></div></div>
+                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">📈</span></div><div class="kpi-info"><span class="kpi-label">Profit</span><span class="kpi-value" id="kpi-iv-profit">—</span></div><div class="kpi-trend" id="kpi-iv-profit-trend"></div></div>
+                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">🏢</span></div><div class="kpi-info"><span class="kpi-label">Customers</span><span class="kpi-value" id="kpi-iv-customers">—</span></div><div class="kpi-trend" id="kpi-iv-customers-trend"></div></div>
                 </div>
                 <div class="charts-grid">
-                    <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>Doanh thu theo tháng</h3><div class="chart-actions"><button class="chart-btn active" data-chart-type="bar">Bar</button><button class="chart-btn" data-chart-type="line">Line</button></div></div><div class="chart-body"><canvas id="chart-revenue-monthly"></canvas></div></div>
-                    <div class="chart-card glass-card"><div class="chart-header"><h3>Top khách hàng</h3><span class="chart-sub">theo Revenue</span></div><div class="chart-body"><div id="top-customers-iv" class="ranking-list"></div></div></div>
+                    <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>Monthly Revenue</h3><div class="chart-actions"><button class="chart-btn active" data-chart-type="bar">Bar</button><button class="chart-btn" data-chart-type="line">Line</button></div></div><div class="chart-body"><canvas id="chart-revenue-monthly"></canvas></div></div>
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>Top Customers</h3><span class="chart-sub">by Revenue</span></div><div class="chart-body"><div id="top-customers-iv" class="ranking-list"></div></div></div>
                 </div>
                 <div class="charts-grid">
-                    <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>Số PO xuất HĐ theo tháng</h3></div><div class="chart-body"><canvas id="chart-po-count"></canvas></div></div>
-                    <div class="chart-card glass-card"><div class="chart-header"><h3>Lợi nhuận theo tháng</h3></div><div class="chart-body"><canvas id="chart-profit-monthly"></canvas></div></div>
+                    <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>Invoiced POs by Month</h3></div><div class="chart-body"><canvas id="chart-po-count"></canvas></div></div>
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>Monthly Profit</h3></div><div class="chart-body"><canvas id="chart-profit-monthly"></canvas></div></div>
                 </div>
-                <div class="report-header-bar"><h2>Chi tiết tháng <span id="report-month-label"></span></h2><div class="report-actions"><button class="btn-export" id="btn-export-pdf"><span>📄</span> Xuất PDF</button><button class="btn-export" id="btn-export-csv"><span>📊</span> Xuất CSV</button></div></div>
+                <div class="report-header-bar"><h2>Monthly Details — <span id="report-month-label"></span></h2><div class="report-actions"><button class="btn-export" id="btn-export-pdf"><span>📄</span> Export PDF</button><button class="btn-export" id="btn-export-csv"><span>📊</span> Export CSV</button></div></div>
                 <div class="table-container glass-card">
-                    <div class="table-toolbar"><div class="search-box"><span class="search-icon">🔍</span><input type="text" id="monthly-search" placeholder="Tìm kiếm PO, khách hàng..."></div><select id="monthly-status-filter" class="filter-select"><option value="">Tất cả trạng thái</option></select></div>
+                    <div class="table-toolbar"><div class="search-box"><span class="search-icon">🔍</span><input type="text" id="monthly-search" placeholder="Search PO, customer..."></div><select id="monthly-status-filter" class="filter-select"><option value="">All Status</option></select></div>
                     <div class="table-scroll"><table class="data-table" id="monthly-table"><thead><tr id="monthly-table-head"></tr></thead><tbody id="monthly-table-body"></tbody></table></div>
-                    <div class="table-footer"><span id="monthly-table-info">Hiển thị 0 dòng</span><div class="pagination" id="monthly-pagination"></div></div>
+                    <div class="table-footer"><span id="monthly-table-info">Showing 0 rows</span><div class="pagination" id="monthly-pagination"></div></div>
                 </div>
             </section>
-
-
 
             <!-- View: Details -->
             <section class="view-section" id="view-details">
                 <div class="report-header-bar">
-                    <h2>Chi tiết PO - Toàn bộ dữ liệu</h2>
-                    <button class="btn-export" id="btn-export-all-csv">
-                        <span>📊</span> Xuất CSV
-                    </button>
+                    <h2>All PO Details</h2>
+                    <button class="btn-export" id="btn-export-all-csv"><span>📊</span> Export CSV</button>
                 </div>
-                <div class="table-container">
+                <div class="table-container glass-card">
                     <div class="table-toolbar">
-                        <div class="search-box">
-                            <span class="search-icon">🔍</span>
-                            <input type="text" id="detail-search" placeholder="Tìm kiếm...">
-                        </div>
+                        <div class="search-box"><span class="search-icon">🔍</span><input type="text" id="detail-search" placeholder="Search..."></div>
                         <div class="table-filters">
-                            <select id="detail-year-filter" class="filter-select">
-                                <option value="">Tất cả năm</option>
-                            </select>
-                            <select id="detail-status-filter" class="filter-select">
-                                <option value="">Tất cả trạng thái</option>
-                            </select>
+                            <select id="detail-year-filter" class="filter-select"><option value="">All Years</option></select>
+                            <select id="detail-status-filter" class="filter-select"><option value="">All Status</option></select>
                         </div>
                     </div>
-                    <div class="table-scroll">
-                        <table class="data-table" id="detail-table">
-                            <thead>
-                                <tr id="detail-table-head"></tr>
-                            </thead>
-                            <tbody id="detail-table-body"></tbody>
-                        </table>
-                    </div>
-                    <div class="table-footer">
-                        <span id="detail-table-info">Hiển thị 0 dòng</span>
-                        <div class="pagination" id="detail-pagination"></div>
-                    </div>
+                    <div class="table-scroll"><table class="data-table" id="detail-table"><thead><tr id="detail-table-head"></tr></thead><tbody id="detail-table-body"></tbody></table></div>
+                    <div class="table-footer"><span id="detail-table-info">Showing 0 rows</span><div class="pagination" id="detail-pagination"></div></div>
                 </div>
             </section>
 
             <!-- View: Analytics -->
             <section class="view-section" id="view-analytics">
                 <div class="analytics-grid">
-                    <div class="chart-card chart-wide">
-                        <div class="chart-header">
-                            <h3>Xu hướng doanh thu (12 tháng)</h3>
-                        </div>
-                        <div class="chart-body chart-tall">
-                            <canvas id="chart-revenue-trend"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3>Phân bổ theo khách hàng</h3>
-                        </div>
-                        <div class="chart-body chart-tall">
-                            <canvas id="chart-customer-dist"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-card chart-wide">
-                        <div class="chart-header">
-                            <h3>So sánh tháng này vs tháng trước</h3>
-                        </div>
-                        <div class="chart-body">
-                            <canvas id="chart-comparison"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3>Tăng trưởng tích lũy</h3>
-                        </div>
-                        <div class="chart-body chart-tall">
-                            <canvas id="chart-cumulative"></canvas>
-                        </div>
-                    </div>
+                    <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>Revenue Trend (12 Months)</h3></div><div class="chart-body chart-tall"><canvas id="chart-revenue-trend"></canvas></div></div>
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>Customer Distribution</h3></div><div class="chart-body chart-tall"><canvas id="chart-customer-dist"></canvas></div></div>
+                    <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>This Month vs Last Month</h3></div><div class="chart-body"><canvas id="chart-comparison"></canvas></div></div>
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>Cumulative Growth</h3></div><div class="chart-body chart-tall"><canvas id="chart-cumulative"></canvas></div></div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <!-- html2canvas for PDF export -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <!-- jsPDF for PDF export -->
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
     <script src="config.js"></script>
     <script src="app.js"></script>
