@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BD Team Dashboard - Báo cáo theo dõi PO hàng tháng cho Team BD Antigravity">
+    <title>BD Dashboard | Antigravity Team Trí</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loader-container">
+            <div class="loader-ring">
+                <div class="loader-ring-inner"></div>
+            </div>
+            <p class="loader-text">Đang tải dữ liệu...</p>
+            <p class="loader-subtext">Kết nối Google Sheets API</p>
+        </div>
+    </div>
+
+    <!-- Setup Modal -->
+    <div id="setup-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-card">
+            <div class="modal-icon">🔑</div>
+            <h2>Cấu hình API Key</h2>
+            <p class="modal-desc">Nhập Google Sheets API Key để kết nối dữ liệu. API Key sẽ được lưu trong trình duyệt.</p>
+            <div class="input-group">
+                <label for="api-key-input">API Key</label>
+                <input type="text" id="api-key-input" placeholder="AIzaSy..." autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label for="sales-filter-input">Tên Sales (lọc dữ liệu)</label>
+                <input type="text" id="sales-filter-input" value="Trí" placeholder="Trí">
+            </div>
+            <button id="save-api-key" class="btn-primary">Kết nối Dashboard</button>
+            <p class="modal-hint">💡 Sheet phải ở chế độ "Anyone with the link can view"</p>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" class="app" style="display:none;">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">◆</span>
+                    <span class="logo-text">Antigravity</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">
+                    <span class="toggle-icon">‹</span>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-view="overview">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-label">Tổng quan</span>
+                </a>
+                <a href="#" class="nav-item" data-view="monthly">
+                    <span class="nav-icon">📅</span>
+                    <span class="nav-label">Báo cáo tháng</span>
+                </a>
+                <a href="#" class="nav-item" data-view="details">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-label">Chi tiết PO</span>
+                </a>
+                <a href="#" class="nav-item" data-view="analytics">
+                    <span class="nav-icon">📈</span>
+                    <span class="nav-label">Phân tích</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn-settings" id="btn-settings" title="Cài đặt">
+                    <span>⚙️</span>
+                    <span class="nav-label">Cài đặt</span>
+                </button>
+                <button class="btn-refresh" id="btn-refresh" title="Làm mới dữ liệu">
+                    <span>🔄</span>
+                    <span class="nav-label">Làm mới</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
+                    <div>
+                        <h1 id="page-title">Tổng quan</h1>
+                        <p class="header-subtitle" id="header-subtitle">Team BD - Trí</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="month-selector">
+                        <button class="btn-month-nav" id="prev-month">‹</button>
+                        <span class="current-month" id="current-month">Tháng 5, 2026</span>
+                        <button class="btn-month-nav" id="next-month">›</button>
+                    </div>
+                    <div class="header-badge" id="last-update">
+                        <span class="badge-dot"></span>
+                        <span>Đang kết nối...</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- View: Overview -->
+            <section class="view-section active" id="view-overview">
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card kpi-total">
+                        <div class="kpi-icon-wrapper">
+                            <span class="kpi-icon">📦</span>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Tổng PO</span>
+                            <span class="kpi-value" id="kpi-total-po">—</span>
+                        </div>
+                        <div class="kpi-trend" id="kpi-total-trend"></div>
+                    </div>
+                    <div class="kpi-card kpi-revenue">
+                        <div class="kpi-icon-wrapper">
+                            <span class="kpi-icon">💰</span>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Tổng doanh thu</span>
+                            <span class="kpi-value" id="kpi-total-revenue">—</span>
+                        </div>
+                        <div class="kpi-trend" id="kpi-revenue-trend"></div>
+                    </div>
+                    <div class="kpi-card kpi-customers">
+                        <div class="kpi-icon-wrapper">
+                            <span class="kpi-icon">🏢</span>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Khách hàng</span>
+                            <span class="kpi-value" id="kpi-customers">—</span>
+                        </div>
+                        <div class="kpi-trend" id="kpi-customers-trend"></div>
+                    </div>
+                    <div class="kpi-card kpi-avg">
+                        <div class="kpi-icon-wrapper">
+                            <span class="kpi-icon">📊</span>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">TB/Đơn hàng</span>
+                            <span class="kpi-value" id="kpi-avg-order">—</span>
+                        </div>
+                        <div class="kpi-trend" id="kpi-avg-trend"></div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-grid">
+                    <div class="chart-card chart-wide">
+                        <div class="chart-header">
+                            <h3>Doanh thu theo tháng</h3>
+                            <div class="chart-actions">
+                                <button class="chart-btn active" data-chart-type="bar">Bar</button>
+                                <button class="chart-btn" data-chart-type="line">Line</button>
+                            </div>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="chart-revenue-monthly"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Trạng thái PO</h3>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="chart-po-status"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second Row -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Top khách hàng</h3>
+                        </div>
+                        <div class="chart-body">
+                            <div id="top-customers-list" class="ranking-list"></div>
+                        </div>
+                    </div>
+                    <div class="chart-card chart-wide">
+                        <div class="chart-header">
+                            <h3>Số lượng PO theo tháng</h3>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="chart-po-count"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- View: Monthly Report -->
+            <section class="view-section" id="view-monthly">
+                <div class="report-header-bar">
+                    <h2>Báo cáo tháng <span id="report-month-label"></span></h2>
+                    <div class="report-actions">
+                        <button class="btn-export" id="btn-export-pdf">
+                            <span>📄</span> Xuất PDF
+                        </button>
+                        <button class="btn-export" id="btn-export-csv">
+                            <span>📊</span> Xuất CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Monthly KPIs -->
+                <div class="monthly-kpi-grid">
+                    <div class="monthly-kpi-card">
+                        <div class="mkpi-value" id="mkpi-po-count">0</div>
+                        <div class="mkpi-label">Số PO</div>
+                        <div class="mkpi-compare" id="mkpi-po-compare"></div>
+                    </div>
+                    <div class="monthly-kpi-card">
+                        <div class="mkpi-value" id="mkpi-revenue">0</div>
+                        <div class="mkpi-label">Doanh thu</div>
+                        <div class="mkpi-compare" id="mkpi-revenue-compare"></div>
+                    </div>
+                    <div class="monthly-kpi-card">
+                        <div class="mkpi-value" id="mkpi-new-customers">0</div>
+                        <div class="mkpi-label">KH mới</div>
+                        <div class="mkpi-compare" id="mkpi-new-compare"></div>
+                    </div>
+                    <div class="monthly-kpi-card">
+                        <div class="mkpi-value" id="mkpi-avg">0</div>
+                        <div class="mkpi-label">TB/Đơn</div>
+                        <div class="mkpi-compare" id="mkpi-avg-compare"></div>
+                    </div>
+                </div>
+
+                <!-- Monthly PO Table -->
+                <div class="table-container">
+                    <div class="table-toolbar">
+                        <div class="search-box">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="monthly-search" placeholder="Tìm kiếm PO, khách hàng...">
+                        </div>
+                        <div class="table-filters">
+                            <select id="monthly-status-filter" class="filter-select">
+                                <option value="">Tất cả trạng thái</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-scroll">
+                        <table class="data-table" id="monthly-table">
+                            <thead>
+                                <tr id="monthly-table-head"></tr>
+                            </thead>
+                            <tbody id="monthly-table-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer">
+                        <span id="monthly-table-info">Hiển thị 0 dòng</span>
+                        <div class="pagination" id="monthly-pagination"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- View: Details -->
+            <section class="view-section" id="view-details">
+                <div class="report-header-bar">
+                    <h2>Chi tiết PO - Toàn bộ dữ liệu</h2>
+                    <button class="btn-export" id="btn-export-all-csv">
+                        <span>📊</span> Xuất CSV
+                    </button>
+                </div>
+                <div class="table-container">
+                    <div class="table-toolbar">
+                        <div class="search-box">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="detail-search" placeholder="Tìm kiếm...">
+                        </div>
+                        <div class="table-filters">
+                            <select id="detail-year-filter" class="filter-select">
+                                <option value="">Tất cả năm</option>
+                            </select>
+                            <select id="detail-status-filter" class="filter-select">
+                                <option value="">Tất cả trạng thái</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-scroll">
+                        <table class="data-table" id="detail-table">
+                            <thead>
+                                <tr id="detail-table-head"></tr>
+                            </thead>
+                            <tbody id="detail-table-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer">
+                        <span id="detail-table-info">Hiển thị 0 dòng</span>
+                        <div class="pagination" id="detail-pagination"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- View: Analytics -->
+            <section class="view-section" id="view-analytics">
+                <div class="analytics-grid">
+                    <div class="chart-card chart-wide">
+                        <div class="chart-header">
+                            <h3>Xu hướng doanh thu (12 tháng)</h3>
+                        </div>
+                        <div class="chart-body chart-tall">
+                            <canvas id="chart-revenue-trend"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Phân bổ theo khách hàng</h3>
+                        </div>
+                        <div class="chart-body chart-tall">
+                            <canvas id="chart-customer-dist"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card chart-wide">
+                        <div class="chart-header">
+                            <h3>So sánh tháng này vs tháng trước</h3>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="chart-comparison"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Tăng trưởng tích lũy</h3>
+                        </div>
+                        <div class="chart-body chart-tall">
+                            <canvas id="chart-cumulative"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <!-- html2canvas for PDF export -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
