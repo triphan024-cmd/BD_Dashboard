@@ -3,7 +3,7 @@ const CONFIG = {
   SHEET_ID: '1ncHjtkSEl9WyogeFd0OEqOjua_TyV4LT3rWiSI64gJk',
   SHEET_NAME: 'S.SO',
   SALES_FILTER: 'Trí',
-  API_KEY: 'AIzaSyDsAkUse-vT1TVCJY3STO7u_SxE6L4_pG4',
+  API_KEY: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.API_KEY) || '',
   ROWS_PER_PAGE: 20
 };
 
