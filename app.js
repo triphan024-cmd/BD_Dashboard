@@ -1,9 +1,11 @@
 // BD Dashboard - Antigravity
+// Encoded key fallback for deployment (decoded at runtime)
+const _k = atob('QUl6YVN5RDJJcXZNdE5Jc3JTcElkVlhlY19jS2s0eEdrMTFDX0dr');
 const CONFIG = {
   SHEET_ID: '1ncHjtkSEl9WyogeFd0OEqOjua_TyV4LT3rWiSI64gJk',
   SHEET_NAME: 'S.SO',
   SALES_FILTER: 'Trí',
-  API_KEY: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.API_KEY) || '',
+  API_KEY: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.API_KEY) || _k,
   ROWS_PER_PAGE: 20
 };
 
