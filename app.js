@@ -153,11 +153,31 @@ async function fetchData() {
 function num(v) { if(!v) return 0; return parseFloat(String(v).replace(/,/g,'')) || 0; }
 function fmt(n) { return n.toLocaleString('vi-VN'); }
 function fmtCurrency(n) { return n >= 1e9 ? (n/1e9).toFixed(2)+'B' : n >= 1e6 ? (n/1e6).toFixed(1)+'M' : fmt(n); }
-function pct(a,b) { if(!b) return '—'; return ((a-b)/Math.abs(b)*100).toFixed(1)+'%'; }
 
-function getMonthData(m,y) {
+// Parse SO Date (format: DD/MM/YYYY or MM/DD/YYYY)
+function parseSODate(v) {
+  if (!v) return null;
+  const parts = v.split('/');
+  if (parts.length !== 3) return null;
+  // Assume DD/MM/YYYY
+  const d = parseInt(parts[0]), m = parseInt(parts[1]), y = parseInt(parts[2]);
+  if (m >= 1 && m <= 12) return { day: d, month: m, year: y };
+  return null;
+}
+
+// Get data filtered by IV Month/Year (invoice - actual revenue)
+function getMonthData(m, y) {
   m = m || currentMonth; y = y || currentYear;
-  return allData.filter(r => num(r[COLS.IV_MONTH])===m && num(r[COLS.IV_YEAR])===y);
+  return allData.filter(r => num(r[COLS.IV_MONTH]) === m && num(r[COLS.IV_YEAR]) === y);
+}
+
+// Get data filtered by SO Date month/year (PO received)
+function getSOMonthData(m, y) {
+  m = m || currentMonth; y = y || currentYear;
+  return allData.filter(r => {
+    const d = parseSODate(r[COLS.SO_DATE]);
+    return d && d.month === m && d.year === y;
+  });
 }
 
 function getStatusClass(s) {
@@ -180,37 +200,127 @@ function toast(msg, type) {
 
 // ===== RENDER ALL =====
 function renderAll() {
-  renderKPIs();
-  renderRevenueChart();
+  renderSOKPIs();
+  renderIVKPIs();
+  renderSOMonthlyChart();
+  renderSOAmountChart();
   renderStatusChart();
+  renderTopCustomersSO();
+  renderRevenueChart();
   renderPOCountChart();
-  renderTopCustomers();
+  renderProfitChart();
+  renderTopCustomersIV();
   renderMonthlyView();
   renderDetailTable();
   renderAnalytics();
 }
 
-// ===== KPIs =====
-function renderKPIs() {
-  const md = getMonthData();
-  const prevMd = getMonthData(currentMonth===1?12:currentMonth-1, currentMonth===1?currentYear-1:currentYear);
-  const totalPO = md.length;
-  const totalRev = md.reduce((s,r) => s + num(r[COLS.REVENUE]), 0);
-  const customers = new Set(md.map(r => r[COLS.CUSTOMER]).filter(Boolean)).size;
-  const avg = totalPO ? totalRev / totalPO : 0;
+// ===== SECTION 1: PO NHẬN ĐƯỢC (SO Date) =====
+function renderSOKPIs() {
+  const md = getSOMonthData();
+  const pm = currentMonth===1?12:currentMonth-1, py = currentMonth===1?currentYear-1:currentYear;
+  const prevMd = getSOMonthData(pm, py);
+  const count = md.length, amount = md.reduce((s,r)=>s+num(r[COLS.AMOUNT]),0);
+  const cust = new Set(md.map(r=>r[COLS.CUSTOMER]).filter(Boolean)).size;
+  const avg = count ? amount/count : 0;
 
-  document.getElementById('kpi-total-po').textContent = fmt(totalPO);
-  document.getElementById('kpi-total-revenue').textContent = fmtCurrency(totalRev);
-  document.getElementById('kpi-customers').textContent = fmt(customers);
-  document.getElementById('kpi-avg-order').textContent = fmtCurrency(avg);
+  document.getElementById('kpi-so-count').textContent = fmt(count);
+  document.getElementById('kpi-so-amount').textContent = fmtCurrency(amount);
+  document.getElementById('kpi-so-customers').textContent = fmt(cust);
+  document.getElementById('kpi-so-avg').textContent = fmtCurrency(avg);
 
-  // Trends
-  const prevPO = prevMd.length;
-  const prevRev = prevMd.reduce((s,r) => s + num(r[COLS.REVENUE]), 0);
+  const prevCount = prevMd.length, prevAmount = prevMd.reduce((s,r)=>s+num(r[COLS.AMOUNT]),0);
   const prevCust = new Set(prevMd.map(r=>r[COLS.CUSTOMER]).filter(Boolean)).size;
-  setTrend('kpi-total-trend', totalPO, prevPO);
-  setTrend('kpi-revenue-trend', totalRev, prevRev);
-  setTrend('kpi-customers-trend', customers, prevCust);
+  setTrend('kpi-so-count-trend', count, prevCount);
+  setTrend('kpi-so-amount-trend', amount, prevAmount);
+  setTrend('kpi-so-customers-trend', cust, prevCust);
+}
+
+function renderSOMonthlyChart() {
+  const c = getChartColors();
+  const months = getLast12Months();
+  const data = months.map(({m,y})=>getSOMonthData(m,y).length);
+  if(charts.soMonthly) charts.soMonthly.destroy();
+  charts.soMonthly = new Chart(document.getElementById('chart-so-monthly'), {
+    type:'bar', data:{ labels:months.map(x=>x.label), datasets:[{
+      label:'PO nhận', data, backgroundColor:'rgba(99,102,241,0.25)', borderColor:'#6366f1', borderWidth:2, borderRadius:6
+    }]}, options:{...chartDefaults(), scales:{...chartDefaults().scales, y:{...chartDefaults().scales.y, ticks:{...chartDefaults().scales.y.ticks, callback:v=>v}}}}
+  });
+}
+
+function renderSOAmountChart() {
+  const c = getChartColors();
+  const months = getLast12Months();
+  const data = months.map(({m,y})=>getSOMonthData(m,y).reduce((s,r)=>s+num(r[COLS.AMOUNT]),0));
+  if(charts.soAmount) charts.soAmount.destroy();
+  charts.soAmount = new Chart(document.getElementById('chart-so-amount'), {
+    type:'line', data:{ labels:months.map(x=>x.label), datasets:[{
+      label:'Amount', data, borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.15)', fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#f59e0b'
+    }]}, options:chartDefaults()
+  });
+}
+
+function renderTopCustomersSO() {
+  const md = getSOMonthData();
+  const map = {};
+  md.forEach(r=>{ const c=r[COLS.CUSTOMER]||'N/A'; map[c]=(map[c]||0)+num(r[COLS.AMOUNT]); });
+  const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  document.getElementById('top-customers-so').innerHTML = sorted.map(([name,val],i)=>
+    `<div class="ranking-item"><div class="ranking-rank">${i+1}</div><div class="ranking-name" title="${name}">${name}</div><div class="ranking-value">${fmtCurrency(val)}</div></div>`
+  ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">Không có dữ liệu</p>';
+}
+
+// ===== SECTION 2: PO XUẤT HÓA ĐƠN (IV Month/Year) =====
+function renderIVKPIs() {
+  const md = getMonthData();
+  const pm = currentMonth===1?12:currentMonth-1, py = currentMonth===1?currentYear-1:currentYear;
+  const prevMd = getMonthData(pm, py);
+  const count = md.length, revenue = md.reduce((s,r)=>s+num(r[COLS.REVENUE]),0);
+  const profit = md.reduce((s,r)=>s+num(r[COLS.PROFIT]),0);
+  const cust = new Set(md.map(r=>r[COLS.CUSTOMER]).filter(Boolean)).size;
+
+  document.getElementById('kpi-iv-count').textContent = fmt(count);
+  document.getElementById('kpi-iv-revenue').textContent = fmtCurrency(revenue);
+  document.getElementById('kpi-iv-profit').textContent = fmtCurrency(profit);
+  document.getElementById('kpi-iv-customers').textContent = fmt(cust);
+
+  const prevCount = prevMd.length;
+  const prevRev = prevMd.reduce((s,r)=>s+num(r[COLS.REVENUE]),0);
+  const prevProfit = prevMd.reduce((s,r)=>s+num(r[COLS.PROFIT]),0);
+  const prevCust = new Set(prevMd.map(r=>r[COLS.CUSTOMER]).filter(Boolean)).size;
+  setTrend('kpi-iv-count-trend', count, prevCount);
+  setTrend('kpi-iv-revenue-trend', revenue, prevRev);
+  setTrend('kpi-iv-profit-trend', profit, prevProfit);
+  setTrend('kpi-iv-customers-trend', cust, prevCust);
+}
+
+function renderTopCustomersIV() {
+  const md = getMonthData();
+  const map = {};
+  md.forEach(r=>{ const c=r[COLS.CUSTOMER]||'N/A'; map[c]=(map[c]||0)+num(r[COLS.REVENUE]); });
+  const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  document.getElementById('top-customers-iv').innerHTML = sorted.map(([name,val],i)=>
+    `<div class="ranking-item"><div class="ranking-rank">${i+1}</div><div class="ranking-name" title="${name}">${name}</div><div class="ranking-value">${fmtCurrency(val)}</div></div>`
+  ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">Không có dữ liệu</p>';
+}
+
+function renderProfitChart() {
+  const c = getChartColors();
+  const months = getLast12Months();
+  const data = months.map(({m,y})=>getMonthData(m,y).reduce((s,r)=>s+num(r[COLS.PROFIT]),0));
+  if(charts.profit) charts.profit.destroy();
+  charts.profit = new Chart(document.getElementById('chart-profit-monthly'), {
+    type:'line', data:{ labels:months.map(x=>x.label), datasets:[{
+      label:'Profit', data, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.15)', fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#10b981'
+    }]}, options:chartDefaults()
+  });
+}
+
+// Helper: get last 12 months array
+function getLast12Months() {
+  const months = [];
+  for(let i=11;i>=0;i--) { let m=currentMonth-i,y=currentYear; while(m<1){m+=12;y--;} months.push({m,y,label:`T${m}`}); }
+  return months;
 }
 
 function setTrend(id, cur, prev) {
@@ -247,12 +357,7 @@ function chartDefaults() {
 function renderRevenueChart(type) {
   type = type || 'bar';
   const c = getChartColors();
-  const months = [];
-  for (let i = 11; i >= 0; i--) {
-    let m = currentMonth - i, y = currentYear;
-    while(m<1){m+=12;y--;}
-    months.push({m,y,label:`T${m}`});
-  }
+  const months = getLast12Months();
   const data = months.map(({m,y}) => getMonthData(m,y).reduce((s,r)=>s+num(r[COLS.REVENUE]),0));
   if(charts.revenue) charts.revenue.destroy();
   charts.revenue = new Chart(document.getElementById('chart-revenue-monthly'), {
@@ -260,11 +365,11 @@ function renderRevenueChart(type) {
       labels: months.map(x=>x.label),
       datasets: [{
         label: 'Doanh thu', data,
-        backgroundColor: type==='bar' ? c.primaryA : 'transparent',
-        borderColor: c.primary, borderWidth: 2,
+        backgroundColor: type==='bar' ? c.greenA : 'transparent',
+        borderColor: c.green, borderWidth: 2,
         borderRadius: type==='bar' ? 6 : 0,
         fill: type==='line', tension: 0.4,
-        pointBackgroundColor: c.primary
+        pointBackgroundColor: c.green
       }]
     }, options: chartDefaults()
   });
@@ -290,12 +395,7 @@ function renderStatusChart() {
 
 function renderPOCountChart() {
   const c = getChartColors();
-  const months = [];
-  for (let i = 11; i >= 0; i--) {
-    let m = currentMonth - i, y = currentYear;
-    while(m<1){m+=12;y--;}
-    months.push({m,y,label:`T${m}`});
-  }
+  const months = getLast12Months();
   const data = months.map(({m,y}) => getMonthData(m,y).length);
   if(charts.poCount) charts.poCount.destroy();
   charts.poCount = new Chart(document.getElementById('chart-po-count'), {
