@@ -10,7 +10,8 @@ const CONFIG = {
 // Simple auth (hash-based for client-side security)
 const USERS = [
   { user: 'tri', pass: 'bd2026' },
-  { user: 'admin', pass: 'antigravity' }
+  { user: 'admin', pass: 'antigravity' },
+  { user: 'nguyên', pass: 'Nguyen120981_@!' }
 ];
 
 const COLS = {
