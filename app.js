@@ -103,8 +103,6 @@ function setupUI() {
   // Logout & Refresh
   document.getElementById('btn-settings').onclick = () => logout();
   document.getElementById('btn-refresh').onclick = () => fetchData();
-  // Exports
-  document.getElementById('btn-export-all-csv').onclick = () => exportCSV(allData);
   // Search
   document.getElementById('detail-search').oninput = () => renderDetailTable();
   // Chart type toggle
@@ -600,20 +598,6 @@ function renderAnalytics() {
       datasets:[{label:'Tích lũy',data:cumData,borderColor:c.green,backgroundColor:c.greenA,fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:c.green}]
     }, options: chartDefaults()
   });
-}
-
-// ===== EXPORT =====
-function exportCSV(data) {
-  const colLabels = {ID_SO:'Mã SO',STATUS:'Trạng thái',SO_DATE:'Ngày',CUSTOMER:'Khách hàng',PO_NO:'PO No',NAME:'Sản phẩm',QTY:'SL',AMOUNT:'Giá trị',REVENUE:'Doanh thu',PROFIT:'Lợi nhuận',MARGIN:'Margin',IV_MONTH:'Tháng',IV_YEAR:'Năm',SALES_SITUATION:'Tình trạng'};
-  const header = DISPLAY_COLS.map(c=>colLabels[c]||c).join(',');
-  const rows = data.map(r => DISPLAY_COLS.map(c => `"${(r[COLS[c]]||'').replace(/"/g,'""')}"`).join(','));
-  const csv = '\uFEFF' + header + '\n' + rows.join('\n');
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `BD_Report_T${currentMonth}_${currentYear}.csv`;
-  a.click();
-  toast('CSV exported successfully','success');
 }
 
 
