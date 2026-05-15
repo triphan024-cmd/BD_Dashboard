@@ -104,9 +104,7 @@ function setupUI() {
   document.getElementById('btn-settings').onclick = () => logout();
   document.getElementById('btn-refresh').onclick = () => fetchData();
   // Exports
-  document.getElementById('btn-export-csv').onclick = () => exportCSV(getMonthData());
   document.getElementById('btn-export-all-csv').onclick = () => exportCSV(allData);
-  document.getElementById('btn-export-pdf').onclick = () => exportPDF();
   // Search
   document.getElementById('detail-search').oninput = () => renderDetailTable();
   // Chart type toggle
@@ -599,17 +597,4 @@ function exportCSV(data) {
   toast('CSV exported successfully','success');
 }
 
-async function exportPDF() {
-  toast('Generating PDF...','');
-  try {
-    const el = document.getElementById('view-monthly');
-    const canvas = await html2canvas(el, {backgroundColor:'#0a0e1a',scale:2});
-    const {jsPDF} = window.jspdf;
-    const pdf = new jsPDF('l','mm','a4');
-    const w = pdf.internal.pageSize.getWidth();
-    const h = canvas.height * w / canvas.width;
-    pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,w,h);
-    pdf.save(`BD_Report_T${currentMonth}_${currentYear}.pdf`);
-    toast('PDF exported successfully','success');
-  } catch(e) { toast('PDF error: '+e.message,'error'); }
-}
+
