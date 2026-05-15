@@ -117,7 +117,6 @@ function setupUI() {
 function updateMonthDisplay() {
   const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   document.getElementById('current-month').textContent = `${monthNames[currentMonth-1]} ${currentYear}`;
-  document.getElementById('report-month-label').textContent = `${monthNames[currentMonth-1]} ${currentYear}`;
 }
 
 // ===== DATA FETCH =====
