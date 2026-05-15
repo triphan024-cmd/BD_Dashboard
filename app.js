@@ -108,7 +108,6 @@ function setupUI() {
   document.getElementById('btn-export-all-csv').onclick = () => exportCSV(allData);
   document.getElementById('btn-export-pdf').onclick = () => exportPDF();
   // Search
-  document.getElementById('monthly-search').oninput = () => renderMonthlyTable();
   document.getElementById('detail-search').oninput = () => renderDetailTable();
   // Chart type toggle
   document.querySelectorAll('.chart-btn').forEach(b => {
@@ -211,9 +210,8 @@ function renderAll() {
   renderTopCustomersSO();
   renderRevenueChart();
   renderPOCountChart();
-  renderProfitChart();
+  renderTargetChart();
   renderTopCustomersIV();
-  renderMonthlyTable();
   renderDetailTable();
   renderAnalytics();
 }
@@ -307,22 +305,43 @@ function renderTopCustomersIV() {
   ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
 }
 
-function renderProfitChart() {
-  const c = getChartColors();
-  const months = getLast12Months();
-  const data = months.map(({m,y})=>getMonthData(m,y).reduce((s,r)=>s+num(r[COLS.PROFIT]),0));
-  if(charts.profit) charts.profit.destroy();
-  charts.profit = new Chart(document.getElementById('chart-profit-monthly'), {
-    type:'line', data:{ labels:months.map(x=>x.label), datasets:[{
-      label:'Profit', data, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.15)', fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#10b981'
-    }]}, options:chartDefaults()
+function renderTargetChart() {
+  const md = allData.filter(r => r[COLS.IV_YEAR] === '2026');
+  const totalRev = md.reduce((s,r) => s + num(r[COLS.REVENUE]), 0);
+  const target = 7000000000;
+  const percentage = Math.min((totalRev / target) * 100, 100).toFixed(1);
+
+  document.getElementById('target-percentage').textContent = `${percentage}%`;
+  document.getElementById('target-revenue-text').textContent = `${(totalRev / 1e9).toFixed(2)}B / 7B VNĐ`;
+
+  if(charts.targetProgress) charts.targetProgress.destroy();
+  charts.targetProgress = new Chart(document.getElementById('chart-target-progress'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Achieved', 'Remaining'],
+      datasets: [{
+        data: [totalRev, Math.max(target - totalRev, 0)],
+        backgroundColor: [getChartColors().primary, getChartColors().grid],
+        borderWidth: 0,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '80%',
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    }
   });
 }
 
-// Helper: get last 12 months array
+// Helper: get 2026 months
 function getLast12Months() {
   const months = [];
-  for(let i=11;i>=0;i--) { let m=currentMonth-i,y=currentYear; while(m<1){m+=12;y--;} months.push({m,y,label:`T${m}`}); }
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  for(let i=1; i<=12; i++) {
+    months.push({m: i, y: 2026, label: monthNames[i-1]});
+  }
   return months;
 }
 
@@ -460,13 +479,6 @@ function setCompare(id, cur, prev) {
 }
 
 // ===== TABLES =====
-function renderMonthlyTable(page) {
-  page = page || 1;
-  const search = (document.getElementById('monthly-search').value||'').toLowerCase();
-  let data = getMonthData().filter(r => !search || DISPLAY_COLS.some(c => (r[COLS[c]]||'').toLowerCase().includes(search)));
-  renderTable('monthly', data, page);
-}
-
 function renderDetailTable(page) {
   page = page || 1;
   const search = (document.getElementById('detail-search').value||'').toLowerCase();

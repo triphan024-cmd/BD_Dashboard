@@ -139,13 +139,16 @@
                 </div>
                 <div class="charts-grid">
                     <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>Invoiced POs by Month</h3></div><div class="chart-body"><canvas id="chart-po-count"></canvas></div></div>
-                    <div class="chart-card glass-card"><div class="chart-header"><h3>Monthly Profit</h3></div><div class="chart-body"><canvas id="chart-profit-monthly"></canvas></div></div>
-                </div>
-                <div class="report-header-bar"><h2>Monthly Details — <span id="report-month-label"></span></h2><div class="report-actions"><button class="btn-export" id="btn-export-pdf"><span>📄</span> Export PDF</button><button class="btn-export" id="btn-export-csv"><span>📊</span> Export CSV</button></div></div>
-                <div class="table-container glass-card">
-                    <div class="table-toolbar"><div class="search-box"><span class="search-icon">🔍</span><input type="text" id="monthly-search" placeholder="Search PO, customer..."></div><select id="monthly-status-filter" class="filter-select"><option value="">All Status</option></select></div>
-                    <div class="table-scroll"><table class="data-table" id="monthly-table"><thead><tr id="monthly-table-head"></tr></thead><tbody id="monthly-table-body"></tbody></table></div>
-                    <div class="table-footer"><span id="monthly-table-info">Showing 0 rows</span><div class="pagination" id="monthly-pagination"></div></div>
+                    <div class="chart-card glass-card">
+                        <div class="chart-header"><h3>Target 2026</h3><span class="chart-sub">7,000,000,000 VNĐ</span></div>
+                        <div class="chart-body" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                            <div style="position:relative; width: 200px; height: 200px;">
+                                <canvas id="chart-target-progress"></canvas>
+                                <div id="target-percentage" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:2.2rem; font-weight:800; color:var(--accent-primary);">0%</div>
+                            </div>
+                            <div style="margin-top:20px; font-size:1.1rem; font-weight:600; color:var(--text-secondary);" id="target-revenue-text">0 / 7B</div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
