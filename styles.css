@@ -320,6 +320,8 @@ body::before {
 
 /* ========== CHART CARDS ========== */
 .charts-grid { display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:20px; }
+.charts-grid-50 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+.charts-grid-33 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:20px; }
 .analytics-grid { display:grid; grid-template-columns:2fr 1fr; gap:16px; }
 .chart-card {
     background:var(--bg-secondary);

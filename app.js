@@ -203,8 +203,9 @@ function renderAll() {
   renderIVKPIs();
   renderSOMonthlyChart();
   renderSOAmountChart();
-  renderStatusChart();
+  renderStatusList();
   renderTopCustomersSO();
+  renderNewCustomersSO();
   renderRevenueChart();
   renderPOCountChart();
   renderTargetChart();
@@ -259,13 +260,36 @@ function renderSOAmountChart() {
 }
 
 function renderTopCustomersSO() {
-  const md = getSOMonthData();
+  const md = allData.filter(r => r[COLS.IV_YEAR] === '2026'); // All 2026 data
   const map = {};
   md.forEach(r=>{ const c=r[COLS.CUSTOMER]||'N/A'; map[c]=(map[c]||0)+num(r[COLS.AMOUNT]); });
   const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
   document.getElementById('top-customers-so').innerHTML = sorted.map(([name,val],i)=>
     `<div class="ranking-item"><div class="ranking-rank">${i+1}</div><div class="ranking-name" title="${name}">${name}</div><div class="ranking-value">${fmtCurrency(val)}</div></div>`
   ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
+}
+
+function renderNewCustomersSO() {
+  const currentMonthData = getSOMonthData();
+  const pastData = allData.filter(r => {
+    const rMonth = parseInt(r[COLS.SO_DATE].split('/')[1] || 0, 10);
+    const rYear = parseInt(r[COLS.SO_DATE].split('/')[2] || 0, 10);
+    return rYear < currentYear || (rYear === currentYear && rMonth < currentMonth);
+  });
+  const pastCustomers = new Set(pastData.map(r => r[COLS.CUSTOMER]).filter(Boolean));
+  
+  const map = {};
+  currentMonthData.forEach(r => {
+    const c = r[COLS.CUSTOMER];
+    if (c && !pastCustomers.has(c)) {
+      map[c] = (map[c]||0) + num(r[COLS.AMOUNT]);
+    }
+  });
+  
+  const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  document.getElementById('new-customers-so').innerHTML = sorted.map(([name,val],i)=>
+    `<div class="ranking-item"><div class="ranking-rank">${i+1}</div><div class="ranking-name" title="${name}">${name}</div><div class="ranking-value">${fmtCurrency(val)}</div></div>`
+  ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No new customers</p>';
 }
 
 // ===== SECTION 2: PO XUẤT HÓA ĐƠN (IV Month/Year) =====
@@ -394,22 +418,18 @@ function renderRevenueChart(type) {
   });
 }
 
-function renderStatusChart() {
-  const c = getChartColors();
-  const md = getMonthData();
-  const statusMap = {};
-  md.forEach(r => { const s = r[COLS.STATUS]||'Không rõ'; statusMap[s]=(statusMap[s]||0)+1; });
-  const labels = Object.keys(statusMap);
-  const colors = [c.primary, c.green, c.amber, c.rose, c.cyan, '#8b5cf6','#ec4899'];
-  if(charts.status) charts.status.destroy();
-  charts.status = new Chart(document.getElementById('chart-po-status'), {
-    type: 'doughnut', data: {
-      labels, datasets: [{ data: Object.values(statusMap), backgroundColor: colors.slice(0,labels.length), borderWidth: 0 }]
-    }, options: {
-      responsive: true, maintainAspectRatio: false, cutout: '65%',
-      plugins: { legend: { position: 'bottom', labels: { color: c.text, padding: 12, font: { size: 11 } } } }
-    }
+function renderStatusList() {
+  const md = getSOMonthData();
+  const map = {};
+  md.forEach(r => {
+    const st = r[COLS.STATUS] || 'Khác';
+    map[st] = (map[st] || 0) + num(r[COLS.AMOUNT]);
   });
+  
+  const sorted = Object.entries(map).sort((a,b) => b[1] - a[1]);
+  document.getElementById('po-status-list').innerHTML = sorted.map(([name,val],i)=>
+    `<div class="ranking-item"><div class="ranking-rank">${i+1}</div><div class="ranking-name" title="${name}">${name}</div><div class="ranking-value">${fmtCurrency(val)}</div></div>`
+  ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
 }
 
 function renderPOCountChart() {

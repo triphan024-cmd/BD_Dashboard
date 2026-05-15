@@ -57,7 +57,7 @@
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item active" data-view="postatus">
                     <span class="nav-icon">📦</span>
-                    <span class="nav-label">PO Status</span>
+                    <span class="nav-label">PO Received</span>
                 </a>
                 <a href="#" class="nav-item" data-view="revenue">
                     <span class="nav-icon">💰</span>
@@ -90,7 +90,7 @@
                 <div class="header-left">
                     <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
                     <div>
-                        <h1 id="page-title">PO Status</h1>
+                        <h1 id="page-title">PO Received</h1>
                         <p class="header-subtitle" id="header-subtitle">BD Team — Trí</p>
                     </div>
                 </div>
@@ -115,13 +115,14 @@
                     <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-cyan"><span class="kpi-icon">🏢</span></div><div class="kpi-info"><span class="kpi-label">Customers</span><span class="kpi-value" id="kpi-so-customers">—</span></div><div class="kpi-trend" id="kpi-so-customers-trend"></div></div>
                     <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-purple"><span class="kpi-icon">📊</span></div><div class="kpi-info"><span class="kpi-label">Avg / Order</span><span class="kpi-value" id="kpi-so-avg">—</span></div><div class="kpi-trend" id="kpi-so-avg-trend"></div></div>
                 </div>
-                <div class="charts-grid">
-                    <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>PO Received by Month</h3><span class="chart-sub">SO Date</span></div><div class="chart-body"><canvas id="chart-so-monthly"></canvas></div></div>
-                    <div class="chart-card glass-card"><div class="chart-header"><h3>PO Status</h3></div><div class="chart-body"><canvas id="chart-po-status"></canvas></div></div>
+                <div class="charts-grid-50">
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>PO Amount by Month</h3><span class="chart-sub">Amount</span></div><div class="chart-body"><canvas id="chart-so-amount"></canvas></div></div>
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>Monthly PO</h3><span class="chart-sub">SO Date</span></div><div class="chart-body"><canvas id="chart-so-monthly"></canvas></div></div>
                 </div>
-                <div class="charts-grid">
-                    <div class="chart-card glass-card"><div class="chart-header"><h3>Top Customers</h3><span class="chart-sub">by Amount</span></div><div class="chart-body"><div id="top-customers-so" class="ranking-list"></div></div></div>
-                    <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>PO Amount by Month</h3><span class="chart-sub">Amount</span></div><div class="chart-body"><canvas id="chart-so-amount"></canvas></div></div>
+                <div class="charts-grid-33">
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>PO Status</h3></div><div class="chart-body"><div id="po-status-list" class="ranking-list"></div></div></div>
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>Top Customers</h3><span class="chart-sub">2026</span></div><div class="chart-body"><div id="top-customers-so" class="ranking-list"></div></div></div>
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>New Customers</h3><span class="chart-sub">This Month</span></div><div class="chart-body"><div id="new-customers-so" class="ranking-list"></div></div></div>
                 </div>
             </section>
 
@@ -156,7 +157,6 @@
             <section class="view-section" id="view-details">
                 <div class="report-header-bar">
                     <h2>All PO Details</h2>
-                    <button class="btn-export" id="btn-export-all-csv"><span>📊</span> Export CSV</button>
                 </div>
                 <div class="table-container glass-card">
                     <div class="table-toolbar">
