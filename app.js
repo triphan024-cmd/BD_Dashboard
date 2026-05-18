@@ -103,9 +103,9 @@ function setupUI() {
   // RBAC
   const loggedUser = sessionStorage.getItem('bd_logged_in');
   if (loggedUser === 'nguyen' || loggedUser === 'nguyên') {
-    document.querySelectorAll('[data-view="podetails"], [data-view="analytics"]').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('[data-view="details"], [data-view="analytics"]').forEach(el => el.style.display = 'none');
   } else {
-    document.querySelectorAll('[data-view="podetails"], [data-view="analytics"]').forEach(el => el.style.display = '');
+    document.querySelectorAll('[data-view="details"], [data-view="analytics"]').forEach(el => el.style.display = '');
   }
   
   // Month nav
