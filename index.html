@@ -99,7 +99,10 @@
                     </div>
                 </div>
                 <div class="header-right">
-                    <button class="btn-month-nav" id="btn-top-refresh" style="font-size:1rem; padding:4px 10px; margin-right:8px; border-radius:6px; background:var(--bg-glass); border:1px solid var(--border-glass); cursor:pointer; color:var(--text-primary); display:flex; align-items:center; gap:5px;" onclick="refreshReportData()" title="Refresh Report Data">🔄 Sync</button>
+                    <button class="btn-top-sync" id="btn-top-refresh" onclick="refreshReportData()" title="Refresh Report Data">
+                        <span style="font-size: 1.1rem; line-height: 1;">🔄</span>
+                        <span style="font-size: 0.85rem; font-weight: 600;">Sync</span>
+                    </button>
                     <div class="month-selector">
                         <button class="btn-month-nav" id="prev-month">‹</button>
                         <span class="current-month" id="current-month">May 2026</span>
@@ -240,6 +243,6 @@
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=19"></script>
+    <script src="app.js?v=20"></script>
 </body>
 </html>

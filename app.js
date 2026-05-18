@@ -931,7 +931,7 @@ function renderReportBoard() {
           ${c.result ? `<div class="timeline-box result"><strong>🎯 Result:</strong> ${c.result}</div>` : ''}
           ${c.action ? `<div class="timeline-box action"><strong>⚡ Action:</strong><br>${c.action}</div>` : ''}
           ${c.pending ? `<div class="timeline-box pending" style="background:var(--bg-secondary); border-left:3px solid var(--accent-amber); margin-top:10px; padding:10px 14px; font-size:0.85rem; border-radius:6px; color:var(--text-primary);"><strong>⏳ Pending:</strong> ${c.pending}</div>` : ''}
-          ${c.suggestion ? `<div class="timeline-box suggestion">💡 <span>${c.suggestion}</span></div>` : ''}
+          ${c.suggestion ? `<div class="timeline-box suggestion" style="background:var(--bg-secondary); border-left:3px solid var(--accent-purple); margin-top:10px; padding:10px 14px; font-size:0.85rem; border-radius:6px; color:var(--text-primary);"><strong>💡 Suggest:</strong> ${c.suggestion}</div>` : ''}
         </div>
       </div>
     `;
