@@ -326,32 +326,50 @@ function renderSOCustomerPie() {
   const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]);
   const top = sorted.slice(0,5);
   const others = sorted.slice(5).reduce((s,x)=>s+x[1],0);
-  if (others > 0) top.push(['Others', others]);
+  if (others > 0) top.push(['Khác', others]);
   
-  const labels = top.map(x=>x[0]);
-  const data = top.map(x=>x[1]);
   const colors = [c.primary, c.amber, c.green, c.cyan, c.rose, '#8e8e93'];
 
+  const hcData = top.map((x, i) => ({
+    name: x[0],
+    y: x[1],
+    color: colors[i % colors.length]
+  }));
+
   if(charts.soCustomerPie) charts.soCustomerPie.destroy();
-  charts.soCustomerPie = new Chart(document.getElementById('chart-so-customer-pie'), {
-    type: 'pie', data: {
-      labels, datasets: [{ data, backgroundColor: colors, borderWidth: 1, borderColor: 'var(--bg-secondary)' }]
-    }, options: {
-      responsive: true, maintainAspectRatio: false,
-      layout: { padding: 20 },
-      plugins: { 
-        legend: { position: 'right', labels: { color: c.text, boxWidth: 12 } },
-        datalabels: { 
-          display: true, color: '#fff', font: {weight: 'bold', size: 12},
-          formatter: (value, context) => {
-            const total = context.chart.data.datasets[0].data.reduce((a,b)=>a+b, 0);
-            const pct = Math.round(value/total*100);
-            return pct > 2 ? pct + '%' : '';
+  charts.soCustomerPie = Highcharts.chart('chart-so-customer-pie', {
+    chart: {
+      type: 'pie',
+      backgroundColor: 'transparent',
+      options3d: { enabled: true, alpha: 45, beta: 0 }
+    },
+    title: { text: null },
+    tooltip: { pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>' },
+    plotOptions: {
+      pie: {
+        allowPointSelect: true,
+        cursor: 'pointer',
+        depth: 35,
+        innerSize: 40,
+        dataLabels: {
+          enabled: true,
+          format: '<b>{point.name}</b>: {point.percentage:.0f}%',
+          distance: 15,
+          style: {
+            color: c.text,
+            textOutline: 'none',
+            fontWeight: '600',
+            fontFamily: 'var(--font-stack)',
+            fontSize: '11px'
           }
         }
       }
     },
-    plugins: [ChartDataLabels]
+    credits: { enabled: false },
+    series: [{
+      name: 'PO Received',
+      data: hcData
+    }]
   });
 }
 
