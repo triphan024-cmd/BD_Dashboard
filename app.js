@@ -245,7 +245,8 @@ function renderSOMonthlyChart() {
   charts.soMonthly = new Chart(document.getElementById('chart-so-monthly'), {
     type:'bar', data:{ labels:months.map(x=>x.label), datasets:[{
       label:'PO nhận', data, backgroundColor:'rgba(99,102,241,0.6)', borderColor:'#6366f1', borderWidth:1, borderRadius:6
-    }]}, options:{...chartDefaults(), scales:{...chartDefaults().scales, y:{...chartDefaults().scales.y, ticks:{...chartDefaults().scales.y.ticks, callback:v=>v}}}}
+    }]}, options:{...chartDefaults(), scales:{...chartDefaults().scales, y:{...chartDefaults().scales.y, ticks:{...chartDefaults().scales.y.ticks, callback:v=>v}}}},
+    plugins: [ChartDataLabels]
   });
 }
 
@@ -257,17 +258,31 @@ function renderSOAmountChart() {
   charts.soAmount = new Chart(document.getElementById('chart-so-amount'), {
     type:'line', data:{ labels:months.map(x=>x.label), datasets:[{
       label:'Amount', data, borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.15)', fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#f59e0b'
-    }]}, options:chartDefaults()
+    }]}, options:chartDefaults(),
+    plugins: [ChartDataLabels]
   });
 }
 
 function renderTopCustomersSO() {
-  const md = allData.filter(r => r[COLS.IV_YEAR] === '2026'); // All 2026 data
-  const map = {};
-  md.forEach(r=>{ const c=r[COLS.CUSTOMER]||'N/A'; map[c]=(map[c]||0)+num(r[COLS.AMOUNT]); });
-  const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const md = getSOMonthData();
+  const md2026 = allData.filter(r => (r[COLS.SO_DATE]||'').split('/')[2] === '2026');
+  
+  const mapMonth = {};
+  md.forEach(r=>{ const c=r[COLS.CUSTOMER]||'N/A'; mapMonth[c]=(mapMonth[c]||0)+num(r[COLS.AMOUNT]); });
+  
+  const mapYear = {};
+  md2026.forEach(r=>{ const c=r[COLS.CUSTOMER]||'N/A'; mapYear[c]=(mapYear[c]||0)+num(r[COLS.AMOUNT]); });
+  
+  const sorted = Object.entries(mapMonth).sort((a,b)=>b[1]-a[1]).slice(0,8);
   document.getElementById('top-customers-so').innerHTML = sorted.map(([name,val],i)=>
-    `<div class="ranking-item"><div class="ranking-rank">${i+1}</div><div class="ranking-name" title="${name}">${name}</div><div class="ranking-value">${fmtCurrency(val)}</div></div>`
+    `<div class="ranking-item">
+       <div class="ranking-rank">${i+1}</div>
+       <div class="ranking-name" title="${name}">${name}</div>
+       <div class="ranking-value" style="display:flex; flex-direction:column; align-items:flex-end;">
+         <span style="color:var(--text-primary); font-weight:bold; line-height:1;">${fmtCurrency(val)}</span>
+         <span style="color:var(--text-muted); font-size:0.75rem; line-height:1; margin-top:2px;">/ ${fmtCurrency(mapYear[name]||0)}</span>
+       </div>
+     </div>`
   ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
 }
 
@@ -323,10 +338,11 @@ function renderSOCustomerPie() {
       labels, datasets: [{ data, backgroundColor: colors, borderWidth: 1, borderColor: 'var(--bg-secondary)' }]
     }, options: {
       responsive: true, maintainAspectRatio: false,
+      layout: { padding: 20 },
       plugins: { 
         legend: { position: 'right', labels: { color: c.text, boxWidth: 12 } },
         datalabels: { 
-          display: true, color: '#fff', font: {weight: 'bold'},
+          display: true, color: '#fff', font: {weight: 'bold', size: 12},
           formatter: (value, context) => {
             const total = context.chart.data.datasets[0].data.reduce((a,b)=>a+b, 0);
             const pct = Math.round(value/total*100);
@@ -334,7 +350,8 @@ function renderSOCustomerPie() {
           }
         }
       }
-    }
+    },
+    plugins: [ChartDataLabels]
   });
 }
 
@@ -567,7 +584,7 @@ function chartDefaults() {
         anchor: 'end', align: 'top', offset: 4
       }
     },
-    layout: { padding: { top: 20 } },
+    layout: { padding: { top: 30 } },
     scales: {
       x: { grid: { color: c.grid }, ticks: { color: c.text, font: { size: 11 } } },
       y: { grid: { color: c.grid }, ticks: { color: c.text, font: { size: 11 }, callback: v => fmtCurrency(v) } }
@@ -607,7 +624,7 @@ function renderStatusList() {
   
   const statusColors = {
     '1': '#8e8e93',
-    '2': '#007aff', '3': '#32ade6', '4': '#af52de',
+    '2': '#007aff', '3': '#069494', '4': '#af52de',
     '5': '#ff3b30', '6': '#34c759', '7': '#ff9f0a', '8': '#ffcc00'
   };
 
@@ -615,7 +632,7 @@ function renderStatusList() {
   document.getElementById('po-status-list').innerHTML = sorted.map(([name,val],i) => {
     const prefix = name.match(/^\d+/);
     const color = prefix && statusColors[prefix[0]] ? statusColors[prefix[0]] : '#8e8e93';
-    return `<div class="ranking-item"><div class="ranking-rank" style="color:${color}; border:2px solid ${color}; background-color:transparent; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:bold;">${prefix?prefix[0]:i+1}</div><div class="ranking-name" style="color:${color}; font-weight:600;" title="${name}">${name}</div><div class="ranking-value" style="color:${color}; font-weight:bold;">${fmtCurrency(val)}</div></div>`;
+    return `<div class="ranking-item"><div class="ranking-rank" style="color:${color} !important; border:2px solid ${color} !important; background:transparent !important; background-color:transparent !important; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:bold;">${prefix?prefix[0]:i+1}</div><div class="ranking-name" style="color:${color}; font-weight:600;" title="${name}">${name}</div><div class="ranking-value" style="color:${color}; font-weight:bold;">${fmtCurrency(val)}</div></div>`;
   }).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
 }
 
