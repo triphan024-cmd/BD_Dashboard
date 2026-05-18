@@ -861,13 +861,22 @@ async function fetchReportData() {
     if (rows.length > 2) {
       reportDataList = rows.slice(2).map(r => ({
         id: r[0]||'', type: r[1]||'', topic: r[2]||'', detail: r[3]||'',
-        result: r[4]||'', action: r[5]||'', suggestion: r[6]||'',
-        date: r[7]||'', month: r[8]||'', year: r[9]||''
+        status: r[4]||'', result: r[5]||'', action: r[6]||'', suggestion: r[7]||'',
+        pending: r[8]||'', date: r[9]||'', month: r[10]||'', year: r[11]||''
       })).filter(x => x.type && x.topic);
     }
   } catch (e) {
     console.error('Fetch Report Data failed:', e);
   }
+}
+
+async function refreshReportData() {
+  const btn = document.getElementById('btn-refresh-report');
+  if (btn) btn.innerHTML = '<span>⏳</span> Refreshing...';
+  await fetchReportData();
+  renderReportBoard();
+  if (btn) btn.innerHTML = '<span>🔄</span> Refresh';
+  toast('Report data updated', 'success');
 }
 
 function renderReportBoard() {
@@ -894,6 +903,18 @@ function renderReportBoard() {
     else if (c.topic.toLowerCase().includes('hr')) topicClass = 'topic-hr';
     else if (c.topic.toLowerCase().includes('po')) topicClass = 'topic-po';
     
+    // Status Badge Logic
+    let statusHtml = '';
+    if (c.status) {
+      let statusLower = c.status.toLowerCase();
+      let statusClass = 'default';
+      if (statusLower.includes('completed')) statusClass = 'completed';
+      else if (statusLower.includes('processing')) statusClass = 'processing';
+      else if (statusLower.includes('pending')) statusClass = 'pending';
+      else if (statusLower.includes('cancelled')) statusClass = 'cancelled';
+      statusHtml = `<span class="status-badge ${statusClass}" style="margin-left: 8px;">${c.status}</span>`;
+    }
+    
     return `
       <div class="timeline-item ${itemClass}">
         <div class="timeline-dot"></div>
@@ -902,12 +923,14 @@ function renderReportBoard() {
             <div class="timeline-badges">
               <span class="badge-type ${itemClass}">${c.type}</span>
               <span class="badge-topic ${topicClass}">${c.topic}</span>
+              ${statusHtml}
             </div>
             ${c.date ? `<div class="timeline-date"><span>🕒</span> ${c.date}</div>` : ''}
           </div>
           <div class="timeline-detail">${c.detail}</div>
           ${c.result ? `<div class="timeline-box result"><strong>🎯 Result:</strong> ${c.result}</div>` : ''}
           ${c.action ? `<div class="timeline-box action"><strong>⚡ Action:</strong><br>${c.action}</div>` : ''}
+          ${c.pending ? `<div class="timeline-box pending" style="background:var(--bg-secondary); border-left:3px solid var(--accent-amber); margin-top:10px; padding:10px 14px; font-size:0.85rem; border-radius:6px; color:var(--text-primary);"><strong>⏳ Pending:</strong> ${c.pending}</div>` : ''}
           ${c.suggestion ? `<div class="timeline-box suggestion">💡 <span>${c.suggestion}</span></div>` : ''}
         </div>
       </div>

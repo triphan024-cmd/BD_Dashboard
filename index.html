@@ -236,6 +236,9 @@
                         </p>
                     </div>
                     <div style="display:flex; gap: 12px; align-items:center;">
+                        <button class="btn-secondary" onclick="refreshReportData()" id="btn-refresh-report">
+                            <span>🔄</span> Refresh
+                        </button>
                         <button class="btn-export" onclick="window.open('https://docs.google.com/spreadsheets/d/1UIqT7rWcfkaAJHZDR5Gzsb4LAcyvh2voVjwHDl7Be7U/edit', '_blank')" style="background:var(--accent-green-glow); color:#1a8d3e; border:1px solid rgba(52,199,89,0.2);">
                             <span>🟢</span> Open Source Data
                         </button>
@@ -257,6 +260,6 @@
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=17"></script>
+    <script src="app.js?v=18"></script>
 </body>
 </html>
