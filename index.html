@@ -95,13 +95,9 @@
                     </div>
                 </div>
                 <div class="header-right">
-                    <button class="btn-top-sync" id="btn-top-refresh" onclick="refreshReportData()" title="Sync Report Data">
+                    <button class="btn-top-sync" id="btn-top-refresh" onclick="fetchData()" title="Sync All Data">
                         <span style="font-size: 1.1rem; line-height: 1;">🔄</span>
                         <span style="font-size: 0.85rem; font-weight: 600;">Sync</span>
-                    </button>
-                    <button class="btn-top-sync" id="btn-refresh" title="Refresh Dashboard Data">
-                        <span style="font-size: 1.1rem; line-height: 1;">🔁</span>
-                        <span style="font-size: 0.85rem; font-weight: 600;">Refresh</span>
                     </button>
                     <div class="month-selector">
                         <button class="btn-month-nav" id="prev-month">‹</button>
@@ -243,6 +239,6 @@
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=28"></script>
+    <script src="app.js?v=29"></script>
 </body>
 </html>

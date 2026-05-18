@@ -111,9 +111,8 @@ function setupUI() {
   // Month nav
   document.getElementById('prev-month').onclick = () => { currentMonth--; if(currentMonth<1){currentMonth=12;currentYear--;} updateMonthDisplay(); renderAll(); };
   document.getElementById('next-month').onclick = () => { currentMonth++; if(currentMonth>12){currentMonth=1;currentYear++;} updateMonthDisplay(); renderAll(); };
-  // Logout & Refresh
+  // Logout
   document.getElementById('btn-settings').onclick = () => logout();
-  document.getElementById('btn-refresh').onclick = () => fetchData();
   // Search
   document.getElementById('detail-search').oninput = () => renderDetailTable();
   // Chart type toggle
