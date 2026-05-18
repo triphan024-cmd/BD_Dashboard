@@ -886,7 +886,7 @@ function renderReportBoard() {
     return rm === currentMonth && ry === currentYear;
   });
   
-  const container = document.getElementById('activity-timeline');
+  const container = document.getElementById('report-timeline-container');
   if (!container) return;
   
   if (filtered.length === 0) {
@@ -937,5 +937,37 @@ function renderReportBoard() {
     `;
   };
   
-  container.innerHTML = filtered.map(renderItem).join('');
+  const wins = filtered.filter(r => r.type.toLowerCase().includes('win'));
+  const flags = filtered.filter(r => r.type.toLowerCase().includes('red flag'));
+  
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const monthLabel = monthNames[currentMonth-1];
+
+  let html = '';
+  
+  // Section 1: Wins
+  html += `
+    <div style="margin-bottom: 40px;">
+      <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin: 20px 0; display:flex; align-items:center; gap:8px;">
+        <span style="font-size:1.5rem;">🏆</span> Key Wins & Achievements in ${monthLabel}
+      </h3>
+      <div class="activity-timeline">
+        ${wins.length > 0 ? wins.map(renderItem).join('') : '<p style="color:var(--text-muted); font-style:italic;">No wins recorded this month.</p>'}
+      </div>
+    </div>
+  `;
+  
+  // Section 2: Red Flags / Pending
+  html += `
+    <div style="margin-bottom: 40px;">
+      <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin: 20px 0; display:flex; align-items:center; gap:8px;">
+        <span style="font-size:1.5rem;">🚩</span> Red Flags & Pending Issues
+      </h3>
+      <div class="activity-timeline">
+        ${flags.length > 0 ? flags.map(renderItem).join('') : '<p style="color:var(--text-muted); font-style:italic;">No red flags this month. Great job!</p>'}
+      </div>
+    </div>
+  `;
+  
+  container.innerHTML = html;
 }

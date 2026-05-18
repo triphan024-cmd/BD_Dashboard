@@ -99,6 +99,7 @@
                     </div>
                 </div>
                 <div class="header-right">
+                    <button class="btn-month-nav" id="btn-top-refresh" style="font-size:1rem; padding:4px 10px; margin-right:8px; border-radius:6px; background:var(--bg-glass); border:1px solid var(--border-glass); cursor:pointer; color:var(--text-primary); display:flex; align-items:center; gap:5px;" onclick="refreshReportData()" title="Refresh Report Data">🔄 Sync</button>
                     <div class="month-selector">
                         <button class="btn-month-nav" id="prev-month">‹</button>
                         <span class="current-month" id="current-month">May 2026</span>
@@ -226,29 +227,8 @@
 
             <!-- View: Report -->
             <section class="view-section" id="view-report">
-                <div class="report-header glass-card" style="margin-bottom: 20px; padding: 20px 24px; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <h2 style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin: 0; display:flex; align-items:center; gap:8px;">
-                            <span style="font-size:1.5rem;">📊</span> BD Monthly Report
-                        </h2>
-                        <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 6px 0 0 0;">
-                            Activity log and strategic highlights for <strong style="color: var(--accent-primary);" id="report-month-label">...</strong>
-                        </p>
-                    </div>
-                    <div style="display:flex; gap: 12px; align-items:center;">
-                        <button class="btn-secondary" onclick="refreshReportData()" id="btn-refresh-report">
-                            <span>🔄</span> Refresh
-                        </button>
-                        <button class="btn-export" onclick="window.open('https://docs.google.com/spreadsheets/d/1UIqT7rWcfkaAJHZDR5Gzsb4LAcyvh2voVjwHDl7Be7U/edit', '_blank')" style="background:var(--accent-green-glow); color:#1a8d3e; border:1px solid rgba(52,199,89,0.2);">
-                            <span>🟢</span> Open Source Data
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="timeline-container">
-                    <div class="activity-timeline" id="activity-timeline">
-                        <!-- Timeline items injected via JS -->
-                    </div>
+                <div class="timeline-container" id="report-timeline-container" style="height: calc(100vh - 100px); padding: 0 20px;">
+                    <!-- Activity timeline generated via JS -->
                 </div>
             </section>
         </main>
@@ -260,6 +240,6 @@
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=18"></script>
+    <script src="app.js?v=19"></script>
 </body>
 </html>
