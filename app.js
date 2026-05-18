@@ -6,7 +6,9 @@ const CONFIG = {
   SHEET_NAME: 'S.SO',
   SALES_FILTER: 'Trí',
   API_KEY: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.API_KEY) || _k,
-  ROWS_PER_PAGE: 20
+  ROWS_PER_PAGE: 20,
+  REPORT_SHEET_ID: '1UIqT7rWcfkaAJHZDR5Gzsb4LAcyvh2voVjwHDl7Be7U',
+  REPORT_SHEET_NAME: 'Report'
 };
 
 // Simple auth (hash-based for client-side security)
