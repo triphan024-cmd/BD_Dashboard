@@ -128,7 +128,7 @@ function updateMonthDisplay() {
   const reportLabel = document.getElementById('report-month-label');
   if (reportLabel) reportLabel.textContent = mStr;
   
-  if (typeof initializeReportTable === 'function') initializeReportTable();
+  if (typeof renderReportBoard === 'function') renderReportBoard();
 }
 
 // ===== DATA FETCH =====
@@ -149,6 +149,10 @@ async function fetchData() {
     document.getElementById('app').style.display = 'flex';
     document.getElementById('header-subtitle').textContent = `BD Team — ${CONFIG.SALES_FILTER}`;
     document.getElementById('last-update').innerHTML = `<span class="badge-dot"></span><span>Updated: ${new Date().toLocaleTimeString('en')}</span>`;
+    
+    // Fetch Report Data
+    if (typeof fetchReportData === 'function') await fetchReportData();
+    
     toast(`Loaded ${allData.length} POs successfully`, 'success');
     renderAll();
   } catch(e) {
@@ -842,93 +846,57 @@ function renderAnalytics() {
   });
 }
 
-// ===== CUSTOM REPORT TABLE =====
-let reportData = [];
+// ===== REPORT BOARD =====
+let reportDataList = [];
 
-function initializeReportTable() {
-  // Try to load saved data from local storage for the current month
-  const storageKey = `bd_report_${currentYear}_${currentMonth}`;
-  const saved = localStorage.getItem(storageKey);
-  
-  if (saved) {
-    reportData = JSON.parse(saved);
-  } else {
-    // Default template if no data exists
-    reportData = [
-      { id: Date.now()+1, category: 'Total Target', amount: '7000000000', status: 'Pending', notes: 'Monthly milestone' },
-      { id: Date.now()+2, category: 'Actual Revenue', amount: '0', status: 'Processing', notes: 'Waiting for invoices' },
-      { id: Date.now()+3, category: 'New Leads', amount: '15', status: 'Completed', notes: 'From marketing campaign' },
-      { id: Date.now()+4, category: 'Expected Profit', amount: '0', status: 'Pending', notes: 'Estimations' }
-    ];
-  }
-  renderReportTable();
-}
-
-function renderReportTable() {
-  const tbody = document.getElementById('custom-report-body');
-  if (!tbody) return;
-  
-  tbody.innerHTML = reportData.map((row, i) => `
-    <tr data-id="${row.id}">
-      <td style="text-align:center; color:var(--text-muted); font-weight:bold;">${i+1}</td>
-      <td><input type="text" class="editable-input" value="${row.category}" placeholder="Enter category..." onchange="updateReportRow(${row.id}, 'category', this.value)"></td>
-      <td><input type="text" class="editable-input" value="${fmtCurrency(row.amount)}" placeholder="0 VNĐ" onchange="updateReportRow(${row.id}, 'amount', this.value)"></td>
-      <td>
-        <select class="editable-select" onchange="updateReportRow(${row.id}, 'status', this.value)">
-          <option value="Completed" ${row.status==='Completed'?'selected':''}>Completed</option>
-          <option value="Processing" ${row.status==='Processing'?'selected':''}>Processing</option>
-          <option value="Pending" ${row.status==='Pending'?'selected':''}>Pending</option>
-          <option value="Cancelled" ${row.status==='Cancelled'?'selected':''}>Cancelled</option>
-        </select>
-      </td>
-      <td><input type="text" class="editable-input" value="${row.notes}" placeholder="Notes..." onchange="updateReportRow(${row.id}, 'notes', this.value)"></td>
-      <td style="text-align:center;">
-        <button class="btn-icon-danger" onclick="deleteReportRow(${row.id})" title="Remove Row">✖</button>
-      </td>
-    </tr>
-  `).join('');
-  
-  document.getElementById('report-sync-status').innerHTML = '🟢 Synced';
-}
-
-function addReportRow() {
-  reportData.push({
-    id: Date.now(),
-    category: '', amount: '0', status: 'Pending', notes: ''
-  });
-  renderReportTable();
-  document.getElementById('report-sync-status').innerHTML = '🟡 Unsaved changes';
-}
-
-function updateReportRow(id, field, value) {
-  const row = reportData.find(r => r.id === id);
-  if (row) {
-    if (field === 'amount') value = value.replace(/[^0-9]/g, ''); // strip formatting
-    row[field] = value;
-    document.getElementById('report-sync-status').innerHTML = '🟡 Unsaved changes';
+async function fetchReportData() {
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.REPORT_SHEET_ID}/values/${encodeURIComponent(CONFIG.REPORT_SHEET_NAME)}?key=${CONFIG.API_KEY}`;
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const json = await res.json();
+    const rows = json.values || [];
+    if (rows.length > 2) {
+      reportDataList = rows.slice(2).map(r => ({
+        id: r[0]||'', type: r[1]||'', topic: r[2]||'', detail: r[3]||'',
+        result: r[4]||'', action: r[5]||'', suggestion: r[6]||'',
+        date: r[7]||'', month: r[8]||'', year: r[9]||''
+      })).filter(x => x.type && x.topic);
+    }
+  } catch (e) {
+    console.error('Fetch Report Data failed:', e);
   }
 }
 
-function deleteReportRow(id) {
-  reportData = reportData.filter(r => r.id !== id);
-  renderReportTable();
-  document.getElementById('report-sync-status').innerHTML = '🟡 Unsaved changes';
-}
-
-function saveReportData() {
-  const btn = document.getElementById('btn-save-report');
-  btn.innerHTML = '<span>⏳</span> Saving...';
+function renderReportBoard() {
+  const mStr = String(currentMonth).padStart(2, '0');
+  const yStr = String(currentYear);
   
-  // Simulate network request
-  setTimeout(() => {
-    const storageKey = `bd_report_${currentYear}_${currentMonth}`;
-    localStorage.setItem(storageKey, JSON.stringify(reportData));
+  const filtered = reportDataList.filter(r => r.month === mStr && r.year === yStr);
+  
+  const wins = filtered.filter(r => r.type === 'Win');
+  const flags = filtered.filter(r => r.type === 'Red Flag');
+  
+  document.getElementById('count-win').textContent = wins.length;
+  document.getElementById('count-redflag').textContent = flags.length;
+  
+  const renderCard = (c) => {
+    let topicClass = 'topic-other';
+    if (c.topic.toLowerCase().includes('project')) topicClass = 'topic-project';
+    else if (c.topic.toLowerCase().includes('hr')) topicClass = 'topic-hr';
+    else if (c.topic.toLowerCase().includes('po')) topicClass = 'topic-po';
     
-    // Update UI
-    renderReportTable(); // Re-render to format amounts
-    document.getElementById('report-sync-status').innerHTML = '🟢 Saved successfully';
-    btn.innerHTML = '<span>💾</span> Save Changes';
-    
-    showToast('Report data saved successfully!', 'success');
-  }, 600);
+    return `
+      <div class="report-card">
+        <span class="card-topic ${topicClass}">${c.topic}</span>
+        <div class="card-detail">${c.detail}</div>
+        ${c.result ? `<div class="card-result"><b>Result:</b> ${c.result}</div>` : ''}
+        ${c.action ? `<div class="card-action"><b>Action:</b><br>${c.action}</div>` : ''}
+        ${c.suggestion ? `<div class="card-suggestion">💡 ${c.suggestion}</div>` : ''}
+      </div>
+    `;
+  };
+  
+  document.getElementById('cards-win').innerHTML = wins.map(renderCard).join('') || '<p style="color:var(--text-muted);text-align:center;padding:20px;">No wins recorded this month.</p>';
+  document.getElementById('cards-redflag').innerHTML = flags.map(renderCard).join('') || '<p style="color:var(--text-muted);text-align:center;padding:20px;">No red flags this month. Great job!</p>';
 }
