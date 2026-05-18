@@ -320,12 +320,18 @@ function renderSOCustomerPie() {
   if(charts.soCustomerPie) charts.soCustomerPie.destroy();
   charts.soCustomerPie = new Chart(document.getElementById('chart-so-customer-pie'), {
     type: 'pie', data: {
-      labels, datasets: [{ data, backgroundColor: colors, borderWidth: 1 }]
+      labels, datasets: [{ data, backgroundColor: colors, borderWidth: 1, borderColor: 'var(--bg-secondary)' }]
     }, options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { 
         legend: { position: 'right', labels: { color: c.text, boxWidth: 12 } },
-        datalabels: { display: false }
+        datalabels: { 
+          display: true, color: '#fff', font: {weight: 'bold'},
+          formatter: (value, context) => {
+            const total = context.chart.data.datasets[0].data.reduce((a,b)=>a+b, 0);
+            return total > 0 ? Math.round(value/total*100) + '%' : '';
+          }
+        }
       }
     }
   });
@@ -337,28 +343,28 @@ function renderTargetPOChart() {
   const totalPO26 = md2026.reduce((s,r) => s + num(r[COLS.AMOUNT]), 0);
   const totalPO25 = md2025.reduce((s,r) => s + num(r[COLS.AMOUNT]), 0);
   const target = 7000000000;
-  const percentage = Math.min((totalPO26 / target) * 100, 100).toFixed(1);
+  
+  const pct26 = Math.min((totalPO26 / target) * 100, 100).toFixed(1);
+  const pct25 = Math.min((totalPO25 / target) * 100, 100).toFixed(1);
 
-  document.getElementById('target-po-percentage').textContent = `${percentage}%`;
-  document.getElementById('target-po-text').textContent = `${(totalPO26 / 1e9).toFixed(2)}B / 7B VNĐ`;
-  document.getElementById('target-po-2025').textContent = `vs 2025: ${(totalPO25 / 1e9).toFixed(2)}B`;
+  document.getElementById('target-po-percentage-26').textContent = `${pct26}%`;
+  document.getElementById('target-po-text-26').textContent = `${(totalPO26 / 1e9).toFixed(2)}B`;
+  
+  document.getElementById('target-po-percentage-25').textContent = `${pct25}%`;
+  document.getElementById('target-po-text-25').textContent = `${(totalPO25 / 1e9).toFixed(2)}B`;
 
-  if(charts.targetPO) charts.targetPO.destroy();
-  charts.targetPO = new Chart(document.getElementById('chart-target-po'), {
+  if(charts.targetPO26) charts.targetPO26.destroy();
+  charts.targetPO26 = new Chart(document.getElementById('chart-target-po-2026'), {
     type: 'doughnut',
-    data: {
-      labels: ['Achieved', 'Remaining'],
-      datasets: [{
-        data: [totalPO26, Math.max(target - totalPO26, 0)],
-        backgroundColor: [getChartColors().amber, getChartColors().grid],
-        borderWidth: 0, hoverOffset: 4
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, cutout: '80%',
-      circumference: 180, rotation: 270,
-      plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } },
-    }
+    data: { labels: ['Achieved', 'Remaining'], datasets: [{ data: [totalPO26, Math.max(target - totalPO26, 0)], backgroundColor: [getChartColors().amber, getChartColors().grid], borderWidth: 0, hoverOffset: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '75%', circumference: 180, rotation: 270, plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } } }
+  });
+
+  if(charts.targetPO25) charts.targetPO25.destroy();
+  charts.targetPO25 = new Chart(document.getElementById('chart-target-po-2025'), {
+    type: 'doughnut',
+    data: { labels: ['Achieved', 'Remaining'], datasets: [{ data: [totalPO25, Math.max(target - totalPO25, 0)], backgroundColor: ['#8e8e93', getChartColors().grid], borderWidth: 0, hoverOffset: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '75%', circumference: 180, rotation: 270, plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } } }
   });
 }
 
@@ -403,38 +409,41 @@ function renderTargetChart() {
   const totalRev26 = md2026.reduce((s,r) => s + num(r[COLS.REVENUE]), 0);
   const totalRev25 = md2025.reduce((s,r) => s + num(r[COLS.REVENUE]), 0);
   const target = 7000000000;
-  const percentage = Math.min((totalRev26 / target) * 100, 100).toFixed(1);
+  
+  const pct26 = Math.min((totalRev26 / target) * 100, 100).toFixed(1);
+  const pct25 = Math.min((totalRev25 / target) * 100, 100).toFixed(1);
 
-  document.getElementById('target-percentage').textContent = `${percentage}%`;
-  document.getElementById('target-revenue-text').textContent = `${(totalRev26 / 1e9).toFixed(2)}B / 7B VNĐ`;
-  document.getElementById('target-rev-2025').textContent = `vs 2025: ${(totalRev25 / 1e9).toFixed(2)}B`;
+  document.getElementById('target-rev-percentage-26').textContent = `${pct26}%`;
+  document.getElementById('target-rev-text-26').textContent = `${(totalRev26 / 1e9).toFixed(2)}B`;
+  
+  document.getElementById('target-rev-percentage-25').textContent = `${pct25}%`;
+  document.getElementById('target-rev-text-25').textContent = `${(totalRev25 / 1e9).toFixed(2)}B`;
 
-  if(charts.targetProgress) charts.targetProgress.destroy();
-  charts.targetProgress = new Chart(document.getElementById('chart-target-progress'), {
+  if(charts.targetProgress26) charts.targetProgress26.destroy();
+  charts.targetProgress26 = new Chart(document.getElementById('chart-target-rev-2026'), {
     type: 'doughnut',
-    data: {
-      labels: ['Achieved', 'Remaining'],
-      datasets: [{
-        data: [totalRev26, Math.max(target - totalRev26, 0)],
-        backgroundColor: [getChartColors().primary, getChartColors().grid],
-        borderWidth: 0,
-        hoverOffset: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '80%',
-      circumference: 180, rotation: 270,
-      plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } },
-    }
+    data: { labels: ['Achieved', 'Remaining'], datasets: [{ data: [totalRev26, Math.max(target - totalRev26, 0)], backgroundColor: [getChartColors().primary, getChartColors().grid], borderWidth: 0, hoverOffset: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '75%', circumference: 180, rotation: 270, plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } } }
+  });
+
+  if(charts.targetProgress25) charts.targetProgress25.destroy();
+  charts.targetProgress25 = new Chart(document.getElementById('chart-target-rev-2025'), {
+    type: 'doughnut',
+    data: { labels: ['Achieved', 'Remaining'], datasets: [{ data: [totalRev25, Math.max(target - totalRev25, 0)], backgroundColor: ['#8e8e93', getChartColors().grid], borderWidth: 0, hoverOffset: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '75%', circumference: 180, rotation: 270, plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } } }
   });
 }
 
 function renderMonthlyDebtChart() {
   const c = getChartColors();
   const months = getLast12Months();
-  const data = months.map(({m,y})=>getMonthData(m,y).reduce((s,r)=>s+(num(r[COLS.BALANCE])>0 ? num(r[COLS.AMOUNT]) : 0),0));
+  const data = months.map(({m,y}) => {
+    return getMonthData(m,y).reduce((s,r) => {
+      const st = (r[COLS.STATUS]||'').toLowerCase();
+      const isDebt = !st.includes('8.') && !st.includes('completed') && !st.includes('cancel') && !st.includes('deleted');
+      return s + (isDebt ? num(r[COLS.AMOUNT]) : 0);
+    }, 0);
+  });
   
   if(charts.debtMonthly) charts.debtMonthly.destroy();
   charts.debtMonthly = new Chart(document.getElementById('chart-debt-monthly'), {
@@ -449,7 +458,11 @@ function renderMonthlyDebtChart() {
 }
 
 function renderPendingDebtList() {
-  const md = allData.filter(r => r[COLS.IV_YEAR] === '2026' && num(r[COLS.BALANCE]) > 0);
+  const md = allData.filter(r => {
+    if (r[COLS.IV_YEAR] !== '2026') return false;
+    const st = (r[COLS.STATUS]||'').toLowerCase();
+    return !st.includes('8.') && !st.includes('completed') && !st.includes('cancel') && !st.includes('deleted');
+  });
   const map = {};
   md.forEach(r => {
     const cust = r[COLS.CUSTOMER] || 'Khác';

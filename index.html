@@ -122,14 +122,24 @@
                 <div class="charts-grid-50">
                     <div class="chart-card glass-card"><div class="chart-header"><h3>Total Amount by Customer</h3><span class="chart-sub">Pie Chart</span></div><div class="chart-body"><canvas id="chart-so-customer-pie"></canvas></div></div>
                     <div class="chart-card glass-card">
-                        <div class="chart-header"><h3>Target 2026 (PO)</h3><span class="chart-sub">7,000,000,000 VNĐ</span></div>
-                        <div class="chart-body" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                            <div style="position:relative; width: 220px; height: 120px;">
-                                <canvas id="chart-target-po"></canvas>
-                                <div id="target-po-percentage" style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); font-size:2.2rem; font-weight:800; color:var(--accent-primary);">0%</div>
+                        <div class="chart-header"><h3>Target PO (2025 vs 2026)</h3><span class="chart-sub">7,000,000,000 VNĐ</span></div>
+                        <div class="chart-body" style="display:flex; flex-direction:row; justify-content:space-around; align-items:center; width:100%; height:100%;">
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <span class="chart-sub">2025</span>
+                                <div style="position:relative; width: 140px; height: 70px;">
+                                    <canvas id="chart-target-po-2025"></canvas>
+                                    <div id="target-po-percentage-25" style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); font-size:1.2rem; font-weight:800; color:var(--text-secondary);">0%</div>
+                                </div>
+                                <div style="margin-top:10px; font-size:0.9rem; font-weight:600;" id="target-po-text-25">0 / 7B</div>
                             </div>
-                            <div style="margin-top:10px; font-size:1.1rem; font-weight:600; color:var(--text-secondary);" id="target-po-text">0 / 7B</div>
-                            <div style="margin-top:5px; font-size:0.8rem; color:var(--text-muted);" id="target-po-2025">vs 2025: —</div>
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <span class="chart-sub" style="color:var(--accent-primary); font-weight:bold;">2026</span>
+                                <div style="position:relative; width: 160px; height: 80px;">
+                                    <canvas id="chart-target-po-2026"></canvas>
+                                    <div id="target-po-percentage-26" style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); font-size:1.4rem; font-weight:800; color:var(--accent-primary);">0%</div>
+                                </div>
+                                <div style="margin-top:10px; font-size:1rem; font-weight:600;" id="target-po-text-26">0 / 7B</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -155,14 +165,24 @@
                 <div class="charts-grid-50">
                     <div class="chart-card glass-card"><div class="chart-header"><h3>Top Customers</h3><span class="chart-sub">by Revenue</span></div><div class="chart-body"><div id="top-customers-iv" class="ranking-list"></div></div></div>
                     <div class="chart-card glass-card">
-                        <div class="chart-header"><h3>Target 2026 (Revenue)</h3><span class="chart-sub">7,000,000,000 VNĐ</span></div>
-                        <div class="chart-body" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                            <div style="position:relative; width: 220px; height: 120px;">
-                                <canvas id="chart-target-progress"></canvas>
-                                <div id="target-percentage" style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); font-size:2.2rem; font-weight:800; color:var(--accent-primary);">0%</div>
+                        <div class="chart-header"><h3>Target Revenue (2025 vs 2026)</h3><span class="chart-sub">7,000,000,000 VNĐ</span></div>
+                        <div class="chart-body" style="display:flex; flex-direction:row; justify-content:space-around; align-items:center; width:100%; height:100%;">
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <span class="chart-sub">2025</span>
+                                <div style="position:relative; width: 140px; height: 70px;">
+                                    <canvas id="chart-target-rev-2025"></canvas>
+                                    <div id="target-rev-percentage-25" style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); font-size:1.2rem; font-weight:800; color:var(--text-secondary);">0%</div>
+                                </div>
+                                <div style="margin-top:10px; font-size:0.9rem; font-weight:600;" id="target-rev-text-25">0 / 7B</div>
                             </div>
-                            <div style="margin-top:10px; font-size:1.1rem; font-weight:600; color:var(--text-secondary);" id="target-revenue-text">0 / 7B</div>
-                            <div style="margin-top:5px; font-size:0.8rem; color:var(--text-muted);" id="target-rev-2025">vs 2025: —</div>
+                            <div style="display:flex; flex-direction:column; align-items:center;">
+                                <span class="chart-sub" style="color:var(--accent-primary); font-weight:bold;">2026</span>
+                                <div style="position:relative; width: 160px; height: 80px;">
+                                    <canvas id="chart-target-rev-2026"></canvas>
+                                    <div id="target-rev-percentage-26" style="position:absolute; bottom:5px; left:50%; transform:translateX(-50%); font-size:1.4rem; font-weight:800; color:var(--accent-primary);">0%</div>
+                                </div>
+                                <div style="margin-top:10px; font-size:1rem; font-weight:600;" id="target-rev-text-26">0 / 7B</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -206,6 +226,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=3"></script>
+    <script src="app.js?v=4"></script>
 </body>
 </html>
