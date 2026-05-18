@@ -127,6 +127,8 @@ function updateMonthDisplay() {
   document.getElementById('current-month').textContent = mStr;
   const reportLabel = document.getElementById('report-month-label');
   if (reportLabel) reportLabel.textContent = mStr;
+  
+  if (typeof initializeReportTable === 'function') initializeReportTable();
 }
 
 // ===== DATA FETCH =====
@@ -840,4 +842,93 @@ function renderAnalytics() {
   });
 }
 
+// ===== CUSTOM REPORT TABLE =====
+let reportData = [];
 
+function initializeReportTable() {
+  // Try to load saved data from local storage for the current month
+  const storageKey = `bd_report_${currentYear}_${currentMonth}`;
+  const saved = localStorage.getItem(storageKey);
+  
+  if (saved) {
+    reportData = JSON.parse(saved);
+  } else {
+    // Default template if no data exists
+    reportData = [
+      { id: Date.now()+1, category: 'Total Target', amount: '7000000000', status: 'Pending', notes: 'Monthly milestone' },
+      { id: Date.now()+2, category: 'Actual Revenue', amount: '0', status: 'Processing', notes: 'Waiting for invoices' },
+      { id: Date.now()+3, category: 'New Leads', amount: '15', status: 'Completed', notes: 'From marketing campaign' },
+      { id: Date.now()+4, category: 'Expected Profit', amount: '0', status: 'Pending', notes: 'Estimations' }
+    ];
+  }
+  renderReportTable();
+}
+
+function renderReportTable() {
+  const tbody = document.getElementById('custom-report-body');
+  if (!tbody) return;
+  
+  tbody.innerHTML = reportData.map((row, i) => `
+    <tr data-id="${row.id}">
+      <td style="text-align:center; color:var(--text-muted); font-weight:bold;">${i+1}</td>
+      <td><input type="text" class="editable-input" value="${row.category}" placeholder="Enter category..." onchange="updateReportRow(${row.id}, 'category', this.value)"></td>
+      <td><input type="text" class="editable-input" value="${fmtCurrency(row.amount)}" placeholder="0 VNĐ" onchange="updateReportRow(${row.id}, 'amount', this.value)"></td>
+      <td>
+        <select class="editable-select" onchange="updateReportRow(${row.id}, 'status', this.value)">
+          <option value="Completed" ${row.status==='Completed'?'selected':''}>Completed</option>
+          <option value="Processing" ${row.status==='Processing'?'selected':''}>Processing</option>
+          <option value="Pending" ${row.status==='Pending'?'selected':''}>Pending</option>
+          <option value="Cancelled" ${row.status==='Cancelled'?'selected':''}>Cancelled</option>
+        </select>
+      </td>
+      <td><input type="text" class="editable-input" value="${row.notes}" placeholder="Notes..." onchange="updateReportRow(${row.id}, 'notes', this.value)"></td>
+      <td style="text-align:center;">
+        <button class="btn-icon-danger" onclick="deleteReportRow(${row.id})" title="Remove Row">✖</button>
+      </td>
+    </tr>
+  `).join('');
+  
+  document.getElementById('report-sync-status').innerHTML = '🟢 Synced';
+}
+
+function addReportRow() {
+  reportData.push({
+    id: Date.now(),
+    category: '', amount: '0', status: 'Pending', notes: ''
+  });
+  renderReportTable();
+  document.getElementById('report-sync-status').innerHTML = '🟡 Unsaved changes';
+}
+
+function updateReportRow(id, field, value) {
+  const row = reportData.find(r => r.id === id);
+  if (row) {
+    if (field === 'amount') value = value.replace(/[^0-9]/g, ''); // strip formatting
+    row[field] = value;
+    document.getElementById('report-sync-status').innerHTML = '🟡 Unsaved changes';
+  }
+}
+
+function deleteReportRow(id) {
+  reportData = reportData.filter(r => r.id !== id);
+  renderReportTable();
+  document.getElementById('report-sync-status').innerHTML = '🟡 Unsaved changes';
+}
+
+function saveReportData() {
+  const btn = document.getElementById('btn-save-report');
+  btn.innerHTML = '<span>⏳</span> Saving...';
+  
+  // Simulate network request
+  setTimeout(() => {
+    const storageKey = `bd_report_${currentYear}_${currentMonth}`;
+    localStorage.setItem(storageKey, JSON.stringify(reportData));
+    
+    // Update UI
+    renderReportTable(); // Re-render to format amounts
+    document.getElementById('report-sync-status').innerHTML = '🟢 Saved successfully';
+    btn.innerHTML = '<span>💾</span> Save Changes';
+    
+    showToast('Report data saved successfully!', 'success');
+  }, 600);
+}

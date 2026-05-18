@@ -232,18 +232,38 @@
                             <span style="font-size:1.5rem;">📊</span> BD Monthly Report
                         </h2>
                         <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 6px 0 0 0;">
-                            Interactive data entry and review for <strong style="color: var(--accent-primary);" id="report-month-label">...</strong>
+                            Native data entry and review for <strong style="color: var(--accent-primary);" id="report-month-label">...</strong>
                         </p>
                     </div>
-                    <div style="display:flex; gap: 12px;">
-                        <button class="btn-export" onclick="window.open('https://docs.google.com/spreadsheets/d/1UIqT7rWcfkaAJHZDR5Gzsb4LAcyvh2voVjwHDl7Be7U/edit', '_blank')" style="background:var(--accent-green-glow); color:#1a8d3e; border:1px solid rgba(52,199,89,0.2);">
-                            <span>🟢</span> Open in Google Sheets
+                    <div style="display:flex; gap: 12px; align-items:center;">
+                        <span id="report-sync-status" style="font-size:0.8rem; color:var(--text-muted); margin-right:10px;">🟢 Synced</span>
+                        <button class="btn-secondary" onclick="addReportRow()">
+                            <span>➕</span> Add Row
+                        </button>
+                        <button class="btn-primary" onclick="saveReportData()" id="btn-save-report">
+                            <span>💾</span> Save Changes
                         </button>
                     </div>
                 </div>
-                <div class="iframe-container glass-card" style="width: 100%; height: calc(100vh - 210px); border-radius: var(--radius); overflow: hidden; padding: 0; box-shadow: 0 4px 24px rgba(0,0,0,0.06); border: 1px solid var(--border-glass);">
-                    <!-- rm=minimal hides the main toolbar to make it look native, but allows direct editing -->
-                    <iframe src="https://docs.google.com/spreadsheets/d/1UIqT7rWcfkaAJHZDR5Gzsb4LAcyvh2voVjwHDl7Be7U/edit?rm=minimal" width="100%" height="100%" frameborder="0" style="display:block;"></iframe>
+                
+                <div class="table-container glass-card" style="width: 100%; border-radius: var(--radius); overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.06); border: 1px solid var(--border-glass);">
+                    <div class="table-scroll" style="height: calc(100vh - 210px);">
+                        <table class="data-table editable-table" id="custom-report-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:50px; text-align:center;">#</th>
+                                    <th style="width:25%;">Item / Category</th>
+                                    <th style="width:20%;">Value / Amount</th>
+                                    <th style="width:15%;">Status</th>
+                                    <th style="width:30%;">Notes</th>
+                                    <th style="width:80px; text-align:center;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="custom-report-body">
+                                <!-- JS will populate rows here -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
         </main>
@@ -255,6 +275,6 @@
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=13"></script>
+    <script src="app.js?v=14"></script>
 </body>
 </html>
