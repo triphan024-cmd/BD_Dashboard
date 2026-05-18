@@ -495,13 +495,13 @@ body::before {
 }
 
 .timeline-box {
-    padding: 12px 16px; border-radius: var(--radius-sm); font-size: 0.9rem; line-height: 1.5; margin-top: 12px;
+    padding: 12px 16px; border-radius: var(--radius-sm); font-size: 0.9rem; line-height: 1.5; margin-top: 12px; white-space: pre-wrap;
 }
 .timeline-box.result { background: var(--bg-glass); border-left: 3px solid var(--accent-green); color: var(--text-primary); }
 .timeline-box.result strong { color: var(--accent-green); }
 .timeline-box.action { background: var(--bg-glass); border-left: 3px solid var(--accent-primary); color: var(--text-primary); }
 .timeline-box.action strong { color: var(--accent-primary); }
-.timeline-box.suggestion { margin-top: 12px; font-size: 0.85rem; color: var(--text-muted); font-style: italic; display:flex; gap:6px; }
+.timeline-box.suggestion { margin-top: 12px; font-size: 0.85rem; color: var(--text-muted); font-style: italic; }
 
 .table-footer {
     display:flex; align-items:center; justify-content:space-between;
