@@ -234,6 +234,7 @@ function renderAll() {
   renderTopCustomersIV();
   renderDetailTable();
   renderAnalytics();
+  if (typeof renderReportBoard === 'function') renderReportBoard();
 }
 
 // ===== SECTION 1: PO NHẬN ĐƯỢC (SO Date) =====
