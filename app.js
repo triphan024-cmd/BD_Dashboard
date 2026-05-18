@@ -904,14 +904,25 @@ function renderReportBoard() {
     else if (c.topic.toLowerCase().includes('hr')) topicClass = 'topic-hr';
     else if (c.topic.toLowerCase().includes('po')) topicClass = 'topic-po';
     
+    let statusHtml = '';
+    if (c.status) {
+      let statusLower = c.status.toLowerCase();
+      let statusClass = 'default';
+      if (statusLower.includes('completed')) statusClass = 'completed';
+      else if (statusLower.includes('processing')) statusClass = 'processing';
+      else if (statusLower.includes('pending')) statusClass = 'pending';
+      else if (statusLower.includes('cancelled')) statusClass = 'cancelled';
+      statusHtml = `<span class="status-badge ${statusClass}">${c.status}</span>`;
+    }
+    
     return `
       <div class="kanban-card ${itemClass}">
         <div class="timeline-header" style="margin-bottom:10px;">
-          <div class="timeline-badges">
+          <div class="timeline-badges" style="display:flex; flex-wrap:wrap; gap:6px;">
             <span class="badge-type ${itemClass}">${c.type}</span>
             <span class="badge-topic ${topicClass}">${c.topic}</span>
+            ${statusHtml}
           </div>
-          ${c.date ? `<div class="timeline-date"><span>🕒</span> ${c.date}</div>` : ''}
         </div>
         <div class="timeline-detail">${c.detail}</div>
         ${c.result ? `<div class="timeline-box result"><strong>🎯 Result:</strong><br>${c.result}</div>` : ''}
@@ -922,37 +933,39 @@ function renderReportBoard() {
     `;
   };
   
-  // Group by Status
-  const statuses = [...new Set(filtered.map(r => r.status).filter(Boolean))].sort();
-  if(statuses.length === 0) statuses.push('No Status');
+  const wins = filtered.filter(r => r.type.toLowerCase().includes('win'));
+  const flags = filtered.filter(r => r.type.toLowerCase().includes('red flag'));
   
-  let html = `<div class="kanban-board">`;
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const monthLabel = monthNames[currentMonth-1];
+
+  let html = '';
   
-  statuses.forEach(status => {
-    let items = filtered.filter(r => (r.status || 'No Status') === status);
-    
-    // Determine header color based on status
-    let statusLower = status.toLowerCase();
-    let headerColor = 'var(--text-primary)';
-    let borderBottom = 'var(--border-glass)';
-    if(statusLower.includes('completed')) { borderBottom = 'var(--accent-green)'; headerColor = 'var(--accent-green)'; }
-    else if(statusLower.includes('processing')) { borderBottom = 'var(--accent-cyan)'; headerColor = 'var(--accent-cyan)'; }
-    else if(statusLower.includes('pending')) { borderBottom = 'var(--accent-amber)'; headerColor = 'var(--accent-amber)'; }
-    else if(statusLower.includes('cancelled')) { borderBottom = 'var(--accent-rose)'; headerColor = 'var(--accent-rose)'; }
-    
+  if(wins.length > 0) {
     html += `
-      <div class="kanban-column">
-        <div class="kanban-header" style="border-bottom: 2px solid ${borderBottom};">
-          <h3 style="color: ${headerColor}; text-transform: uppercase; font-size: 0.95rem; font-weight: 700;">${status}</h3>
-          <span class="report-count">${items.length}</span>
-        </div>
-        <div class="kanban-cards">
-          ${items.map(renderCard).join('')}
+      <div style="margin-bottom: 40px;">
+        <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin: 20px 0; display:flex; align-items:center; gap:8px; border-bottom: 2px solid var(--border-glass); padding-bottom: 10px;">
+          <span style="font-size:1.5rem;">🏆</span> Key Wins & Achievements
+        </h3>
+        <div class="report-grid">
+          ${wins.map(renderCard).join('')}
         </div>
       </div>
     `;
-  });
+  }
   
-  html += `</div>`;
+  if(flags.length > 0) {
+    html += `
+      <div style="margin-bottom: 40px;">
+        <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin: 20px 0; display:flex; align-items:center; gap:8px; border-bottom: 2px solid var(--border-glass); padding-bottom: 10px;">
+          <span style="font-size:1.5rem;">🚩</span> Red Flags & Pending Issues
+        </h3>
+        <div class="report-grid">
+          ${flags.map(renderCard).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
   container.innerHTML = html;
 }
