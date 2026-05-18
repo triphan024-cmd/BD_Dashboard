@@ -119,10 +119,23 @@
                     <div class="chart-card glass-card"><div class="chart-header"><h3>PO Amount by Month</h3><span class="chart-sub">Amount</span></div><div class="chart-body"><canvas id="chart-so-amount"></canvas></div></div>
                     <div class="chart-card glass-card"><div class="chart-header"><h3>Monthly PO</h3><span class="chart-sub">SO Date</span></div><div class="chart-body"><canvas id="chart-so-monthly"></canvas></div></div>
                 </div>
+                <div class="charts-grid-50">
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>Total Amount by Customer</h3><span class="chart-sub">Pie Chart</span></div><div class="chart-body"><canvas id="chart-so-customer-pie"></canvas></div></div>
+                    <div class="chart-card glass-card">
+                        <div class="chart-header"><h3>Target 2026 (PO)</h3><span class="chart-sub">7,000,000,000 VNĐ</span></div>
+                        <div class="chart-body" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                            <div style="position:relative; width: 200px; height: 200px;">
+                                <canvas id="chart-target-po"></canvas>
+                                <div id="target-po-percentage" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:2.2rem; font-weight:800; color:var(--accent-primary);">0%</div>
+                            </div>
+                            <div style="margin-top:20px; font-size:1.1rem; font-weight:600; color:var(--text-secondary);" id="target-po-text">0 / 7B</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="charts-grid-33">
                     <div class="chart-card glass-card"><div class="chart-header"><h3>PO Status</h3></div><div class="chart-body"><div id="po-status-list" class="ranking-list"></div></div></div>
                     <div class="chart-card glass-card"><div class="chart-header"><h3>Top Customers</h3><span class="chart-sub">2026</span></div><div class="chart-body"><div id="top-customers-so" class="ranking-list"></div></div></div>
-                    <div class="chart-card glass-card"><div class="chart-header"><h3>New Customers</h3><span class="chart-sub">This Month</span></div><div class="chart-body"><div id="new-customers-so" class="ranking-list"></div></div></div>
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>New Customers</h3><span class="chart-sub">2026</span></div><div class="chart-body"><div id="new-customers-so" class="ranking-list"></div></div></div>
                 </div>
             </section>
 
@@ -134,14 +147,14 @@
                     <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">📈</span></div><div class="kpi-info"><span class="kpi-label">Profit</span><span class="kpi-value" id="kpi-iv-profit">—</span></div><div class="kpi-trend" id="kpi-iv-profit-trend"></div></div>
                     <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">🏢</span></div><div class="kpi-info"><span class="kpi-label">Customers</span><span class="kpi-value" id="kpi-iv-customers">—</span></div><div class="kpi-trend" id="kpi-iv-customers-trend"></div></div>
                 </div>
-                <div class="charts-grid">
-                    <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>Monthly Revenue</h3><div class="chart-actions"><button class="chart-btn active" data-chart-type="bar">Bar</button><button class="chart-btn" data-chart-type="line">Line</button></div></div><div class="chart-body"><canvas id="chart-revenue-monthly"></canvas></div></div>
-                    <div class="chart-card glass-card"><div class="chart-header"><h3>Top Customers</h3><span class="chart-sub">by Revenue</span></div><div class="chart-body"><div id="top-customers-iv" class="ranking-list"></div></div></div>
+                <div class="charts-grid-50">
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>Monthly Revenue</h3><div class="chart-actions"><button class="chart-btn active" data-chart-type="bar">Bar</button><button class="chart-btn" data-chart-type="line">Line</button></div></div><div class="chart-body"><canvas id="chart-revenue-monthly"></canvas></div></div>
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>Invoiced POs by Month</h3></div><div class="chart-body"><canvas id="chart-po-count"></canvas></div></div>
                 </div>
-                <div class="charts-grid">
-                    <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>Invoiced POs by Month</h3></div><div class="chart-body"><canvas id="chart-po-count"></canvas></div></div>
+                <div class="charts-grid-50">
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>Top Customers</h3><span class="chart-sub">by Revenue</span></div><div class="chart-body"><div id="top-customers-iv" class="ranking-list"></div></div></div>
                     <div class="chart-card glass-card">
-                        <div class="chart-header"><h3>Target 2026</h3><span class="chart-sub">7,000,000,000 VNĐ</span></div>
+                        <div class="chart-header"><h3>Target 2026 (Revenue)</h3><span class="chart-sub">7,000,000,000 VNĐ</span></div>
                         <div class="chart-body" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
                             <div style="position:relative; width: 200px; height: 200px;">
                                 <canvas id="chart-target-progress"></canvas>
@@ -150,6 +163,10 @@
                             <div style="margin-top:20px; font-size:1.1rem; font-weight:600; color:var(--text-secondary);" id="target-revenue-text">0 / 7B</div>
                         </div>
                     </div>
+                </div>
+                <div class="charts-grid-50">
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>Monthly Debt (Công Nợ)</h3><span class="chart-sub">Unpaid Balance</span></div><div class="chart-body"><canvas id="chart-debt-monthly"></canvas></div></div>
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>Pending Debt Detail</h3><span class="chart-sub">By Customer</span></div><div class="chart-body"><div id="pending-debt-list" class="ranking-list"></div></div></div>
                 </div>
             </section>
 
@@ -184,8 +201,9 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=1"></script>
+    <script src="app.js?v=2"></script>
 </body>
 </html>
