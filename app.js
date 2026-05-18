@@ -244,7 +244,7 @@ function renderSOMonthlyChart() {
   if(charts.soMonthly) charts.soMonthly.destroy();
   charts.soMonthly = new Chart(document.getElementById('chart-so-monthly'), {
     type:'bar', data:{ labels:months.map(x=>x.label), datasets:[{
-      label:'PO nhận', data, backgroundColor:'rgba(99,102,241,0.25)', borderColor:'#6366f1', borderWidth:2, borderRadius:6
+      label:'PO nhận', data, backgroundColor:'rgba(99,102,241,0.6)', borderColor:'#6366f1', borderWidth:1, borderRadius:6
     }]}, options:{...chartDefaults(), scales:{...chartDefaults().scales, y:{...chartDefaults().scales.y, ticks:{...chartDefaults().scales.y.ticks, callback:v=>v}}}}
   });
 }
@@ -342,28 +342,29 @@ function renderTargetPOChart() {
   const md2025 = allData.filter(r => (r[COLS.SO_DATE]||'').split('/')[2] === '2025');
   const totalPO26 = md2026.reduce((s,r) => s + num(r[COLS.AMOUNT]), 0);
   const totalPO25 = md2025.reduce((s,r) => s + num(r[COLS.AMOUNT]), 0);
-  const target = 7000000000;
+  const target26 = 7000000000;
+  const target25 = 5000000000; // 5 Tỷ cho 2025
   
-  const pct26 = Math.min((totalPO26 / target) * 100, 100).toFixed(1);
-  const pct25 = Math.min((totalPO25 / target) * 100, 100).toFixed(1);
+  const pct26 = Math.min((totalPO26 / target26) * 100, 100).toFixed(1);
+  const pct25 = Math.min((totalPO25 / target25) * 100, 100).toFixed(1);
 
   document.getElementById('target-po-percentage-26').textContent = `${pct26}%`;
-  document.getElementById('target-po-text-26').textContent = `${(totalPO26 / 1e9).toFixed(2)}B`;
+  document.getElementById('target-po-text-26').textContent = `${(totalPO26 / 1e9).toFixed(2)}B / 7B`;
   
   document.getElementById('target-po-percentage-25').textContent = `${pct25}%`;
-  document.getElementById('target-po-text-25').textContent = `${(totalPO25 / 1e9).toFixed(2)}B`;
+  document.getElementById('target-po-text-25').textContent = `${(totalPO25 / 1e9).toFixed(2)}B / 5B`;
 
   if(charts.targetPO26) charts.targetPO26.destroy();
   charts.targetPO26 = new Chart(document.getElementById('chart-target-po-2026'), {
     type: 'doughnut',
-    data: { labels: ['Achieved', 'Remaining'], datasets: [{ data: [totalPO26, Math.max(target - totalPO26, 0)], backgroundColor: [getChartColors().amber, getChartColors().grid], borderWidth: 0, hoverOffset: 4 }] },
+    data: { labels: ['Achieved', 'Remaining'], datasets: [{ data: [totalPO26, Math.max(target26 - totalPO26, 0)], backgroundColor: [getChartColors().amber, getChartColors().grid], borderWidth: 0, hoverOffset: 4 }] },
     options: { responsive: true, maintainAspectRatio: false, cutout: '75%', circumference: 180, rotation: 270, plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } } }
   });
 
   if(charts.targetPO25) charts.targetPO25.destroy();
   charts.targetPO25 = new Chart(document.getElementById('chart-target-po-2025'), {
     type: 'doughnut',
-    data: { labels: ['Achieved', 'Remaining'], datasets: [{ data: [totalPO25, Math.max(target - totalPO25, 0)], backgroundColor: ['#8e8e93', getChartColors().grid], borderWidth: 0, hoverOffset: 4 }] },
+    data: { labels: ['Achieved', 'Remaining'], datasets: [{ data: [totalPO25, Math.max(target25 - totalPO25, 0)], backgroundColor: ['#8e8e93', getChartColors().grid], borderWidth: 0, hoverOffset: 4 }] },
     options: { responsive: true, maintainAspectRatio: false, cutout: '75%', circumference: 180, rotation: 270, plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } } }
   });
 }
@@ -394,11 +395,24 @@ function renderIVKPIs() {
 
 function renderTopCustomersIV() {
   const md = getMonthData();
-  const map = {};
-  md.forEach(r=>{ const c=r[COLS.CUSTOMER]||'N/A'; map[c]=(map[c]||0)+num(r[COLS.REVENUE]); });
-  const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const md2026 = allData.filter(r => r[COLS.IV_YEAR] === '2026');
+  
+  const mapMonth = {};
+  md.forEach(r=>{ const c=r[COLS.CUSTOMER]||'N/A'; mapMonth[c]=(mapMonth[c]||0)+num(r[COLS.REVENUE]); });
+  
+  const mapYear = {};
+  md2026.forEach(r=>{ const c=r[COLS.CUSTOMER]||'N/A'; mapYear[c]=(mapYear[c]||0)+num(r[COLS.REVENUE]); });
+  
+  const sorted = Object.entries(mapMonth).sort((a,b)=>b[1]-a[1]).slice(0,8);
   document.getElementById('top-customers-iv').innerHTML = sorted.map(([name,val],i)=>
-    `<div class="ranking-item"><div class="ranking-rank">${i+1}</div><div class="ranking-name" title="${name}">${name}</div><div class="ranking-value">${fmtCurrency(val)}</div></div>`
+    `<div class="ranking-item">
+       <div class="ranking-rank">${i+1}</div>
+       <div class="ranking-name" title="${name}">${name}</div>
+       <div class="ranking-value" style="display:flex; flex-direction:column; align-items:flex-end;">
+         <span style="color:var(--text-primary); font-weight:bold; line-height:1;">${fmtCurrency(val)}</span>
+         <span style="color:var(--text-muted); font-size:0.75rem; line-height:1; margin-top:2px;">/ ${fmtCurrency(mapYear[name]||0)}</span>
+       </div>
+     </div>`
   ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
 }
 
@@ -408,28 +422,29 @@ function renderTargetChart() {
   
   const totalRev26 = md2026.reduce((s,r) => s + num(r[COLS.REVENUE]), 0);
   const totalRev25 = md2025.reduce((s,r) => s + num(r[COLS.REVENUE]), 0);
-  const target = 7000000000;
+  const target26 = 7000000000;
+  const target25 = 5000000000;
   
-  const pct26 = Math.min((totalRev26 / target) * 100, 100).toFixed(1);
-  const pct25 = Math.min((totalRev25 / target) * 100, 100).toFixed(1);
+  const pct26 = Math.min((totalRev26 / target26) * 100, 100).toFixed(1);
+  const pct25 = Math.min((totalRev25 / target25) * 100, 100).toFixed(1);
 
   document.getElementById('target-rev-percentage-26').textContent = `${pct26}%`;
-  document.getElementById('target-rev-text-26').textContent = `${(totalRev26 / 1e9).toFixed(2)}B`;
+  document.getElementById('target-rev-text-26').textContent = `${(totalRev26 / 1e9).toFixed(2)}B / 7B`;
   
   document.getElementById('target-rev-percentage-25').textContent = `${pct25}%`;
-  document.getElementById('target-rev-text-25').textContent = `${(totalRev25 / 1e9).toFixed(2)}B`;
+  document.getElementById('target-rev-text-25').textContent = `${(totalRev25 / 1e9).toFixed(2)}B / 5B`;
 
   if(charts.targetProgress26) charts.targetProgress26.destroy();
   charts.targetProgress26 = new Chart(document.getElementById('chart-target-rev-2026'), {
     type: 'doughnut',
-    data: { labels: ['Achieved', 'Remaining'], datasets: [{ data: [totalRev26, Math.max(target - totalRev26, 0)], backgroundColor: [getChartColors().primary, getChartColors().grid], borderWidth: 0, hoverOffset: 4 }] },
+    data: { labels: ['Achieved', 'Remaining'], datasets: [{ data: [totalRev26, Math.max(target26 - totalRev26, 0)], backgroundColor: [getChartColors().primary, getChartColors().grid], borderWidth: 0, hoverOffset: 4 }] },
     options: { responsive: true, maintainAspectRatio: false, cutout: '75%', circumference: 180, rotation: 270, plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } } }
   });
 
   if(charts.targetProgress25) charts.targetProgress25.destroy();
   charts.targetProgress25 = new Chart(document.getElementById('chart-target-rev-2025'), {
     type: 'doughnut',
-    data: { labels: ['Achieved', 'Remaining'], datasets: [{ data: [totalRev25, Math.max(target - totalRev25, 0)], backgroundColor: ['#8e8e93', getChartColors().grid], borderWidth: 0, hoverOffset: 4 }] },
+    data: { labels: ['Achieved', 'Remaining'], datasets: [{ data: [totalRev25, Math.max(target25 - totalRev25, 0)], backgroundColor: ['#8e8e93', getChartColors().grid], borderWidth: 0, hoverOffset: 4 }] },
     options: { responsive: true, maintainAspectRatio: false, cutout: '75%', circumference: 180, rotation: 270, plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } } }
   });
 }
@@ -507,27 +522,30 @@ function getChartColors() {
 const modernChartPlugin = {
   id: 'modernChartPlugin',
   beforeDatasetsDraw: function(chart, args, options) {
+    const ctx = chart.ctx;
+    ctx.save();
     if (chart.config.type === 'bar' || chart.config.type === 'line') {
-      const ctx = chart.ctx;
-      ctx.save();
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
-      ctx.shadowBlur = 8;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetX = 3;
+      ctx.shadowOffsetY = 6;
+    } else if (chart.config.type === 'pie' || chart.config.type === 'doughnut') {
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+      ctx.shadowBlur = 15;
       ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 4;
+      ctx.shadowOffsetY = 8;
     }
   },
   afterDatasetsDraw: function(chart, args, options) {
-    if (chart.config.type === 'bar' || chart.config.type === 'line') {
-      chart.ctx.restore();
-    }
+    chart.ctx.restore();
   }
 };
 Chart.register(modernChartPlugin);
 
 function shortFmt(val) {
-  if (val >= 1e9) return (val/1e9).toFixed(1) + 'B';
-  if (val >= 1e6) return Math.round(val/1e6) + 'M';
-  if (val >= 1e3) return Math.round(val/1e3) + 'K';
+  if (val >= 1e9) return Number((val/1e9).toPrecision(3)) + 'B';
+  if (val >= 1e6) return Number((val/1e6).toPrecision(3)) + 'M';
+  if (val >= 1e3) return Number((val/1e3).toPrecision(3)) + 'K';
   return val;
 }
 
@@ -538,12 +556,14 @@ function chartDefaults() {
     plugins: { 
       legend: { display: false },
       datalabels: {
+        display: true,
         color: c.text,
-        font: { weight: '600', size: 10, family: 'var(--font-stack)' },
+        font: { weight: 'bold', size: 11, family: 'var(--font-stack)' },
         formatter: (v) => v > 0 ? shortFmt(v) : '',
-        anchor: 'end', align: 'top', offset: 2
+        anchor: 'end', align: 'top', offset: 4
       }
     },
+    layout: { padding: { top: 20 } },
     scales: {
       x: { grid: { color: c.grid }, ticks: { color: c.text, font: { size: 11 } } },
       y: { grid: { color: c.grid }, ticks: { color: c.text, font: { size: 11 }, callback: v => fmtCurrency(v) } }
