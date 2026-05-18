@@ -894,7 +894,7 @@ function renderReportBoard() {
     return;
   }
   
-  const renderItem = (c) => {
+  const renderCard = (c) => {
     let isWin = c.type.toLowerCase().includes('win');
     let itemClass = isWin ? 'win' : 'redflag';
     
@@ -903,71 +903,55 @@ function renderReportBoard() {
     else if (c.topic.toLowerCase().includes('hr')) topicClass = 'topic-hr';
     else if (c.topic.toLowerCase().includes('po')) topicClass = 'topic-po';
     
-    // Status Badge Logic
-    let statusHtml = '';
-    if (c.status) {
-      let statusLower = c.status.toLowerCase();
-      let statusClass = 'default';
-      if (statusLower.includes('completed')) statusClass = 'completed';
-      else if (statusLower.includes('processing')) statusClass = 'processing';
-      else if (statusLower.includes('pending')) statusClass = 'pending';
-      else if (statusLower.includes('cancelled')) statusClass = 'cancelled';
-      statusHtml = `<span class="status-badge ${statusClass}" style="margin-left: 8px;">${c.status}</span>`;
-    }
-    
     return `
-      <div class="timeline-item ${itemClass}">
-        <div class="timeline-dot"></div>
-        <div class="timeline-content">
-          <div class="timeline-header">
-            <div class="timeline-badges">
-              <span class="badge-type ${itemClass}">${c.type}</span>
-              <span class="badge-topic ${topicClass}">${c.topic}</span>
-              ${statusHtml}
-            </div>
-            ${c.date ? `<div class="timeline-date"><span>🕒</span> ${c.date}</div>` : ''}
+      <div class="kanban-card ${itemClass}">
+        <div class="timeline-header" style="margin-bottom:10px;">
+          <div class="timeline-badges">
+            <span class="badge-type ${itemClass}">${c.type}</span>
+            <span class="badge-topic ${topicClass}">${c.topic}</span>
           </div>
-          <div class="timeline-detail">${c.detail}</div>
-          ${c.result ? `<div class="timeline-box result"><strong>🎯 Result:</strong> ${c.result}</div>` : ''}
-          ${c.action ? `<div class="timeline-box action"><strong>⚡ Action:</strong><br>${c.action}</div>` : ''}
-          ${c.pending ? `<div class="timeline-box pending" style="background:var(--bg-secondary); border-left:3px solid var(--accent-amber); margin-top:10px; padding:10px 14px; font-size:0.85rem; border-radius:6px; color:var(--text-primary);"><strong>⏳ Pending:</strong> ${c.pending}</div>` : ''}
-          ${c.suggestion ? `<div class="timeline-box suggestion" style="background:var(--bg-secondary); border-left:3px solid var(--accent-purple); margin-top:10px; padding:10px 14px; font-size:0.85rem; border-radius:6px; color:var(--text-primary);"><strong>💡 Suggest:</strong> ${c.suggestion}</div>` : ''}
+          ${c.date ? `<div class="timeline-date"><span>🕒</span> ${c.date}</div>` : ''}
         </div>
+        <div class="timeline-detail">${c.detail}</div>
+        ${c.result ? `<div class="timeline-box result"><strong>🎯 Result:</strong> ${c.result}</div>` : ''}
+        ${c.action ? `<div class="timeline-box action"><strong>⚡ Action:</strong><br>${c.action}</div>` : ''}
+        ${c.suggestion ? `<div class="timeline-box suggestion" style="background:var(--bg-secondary); border-left:3px solid var(--accent-purple); margin-top:10px; padding:10px 14px; font-size:0.85rem; border-radius:6px; color:var(--text-primary);"><strong>💡 Suggest:</strong> ${c.suggestion}</div>` : ''}
+        ${c.pending ? `<div class="timeline-box pending" style="background:rgba(239,68,68,0.05); border-left:3px solid var(--accent-rose); margin-top:10px; padding:10px 14px; font-size:0.85rem; border-radius:6px; color:var(--text-primary);"><strong>⏳ Pending:</strong> <span style="color:var(--accent-rose); font-weight:600;">${c.pending}</span></div>` : ''}
       </div>
     `;
   };
   
-  const wins = filtered.filter(r => r.type.toLowerCase().includes('win'));
-  const flags = filtered.filter(r => r.type.toLowerCase().includes('red flag'));
+  // Group by Status
+  const statuses = [...new Set(filtered.map(r => r.status).filter(Boolean))].sort();
+  if(statuses.length === 0) statuses.push('No Status');
   
-  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const monthLabel = monthNames[currentMonth-1];
-
-  let html = '';
+  let html = `<div class="kanban-board">`;
   
-  // Section 1: Wins
-  html += `
-    <div style="margin-bottom: 40px;">
-      <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin: 20px 0; display:flex; align-items:center; gap:8px;">
-        <span style="font-size:1.5rem;">🏆</span> Key Wins & Achievements in ${monthLabel}
-      </h3>
-      <div class="activity-timeline">
-        ${wins.length > 0 ? wins.map(renderItem).join('') : '<p style="color:var(--text-muted); font-style:italic;">No wins recorded this month.</p>'}
+  statuses.forEach(status => {
+    let items = filtered.filter(r => (r.status || 'No Status') === status);
+    
+    // Determine header color based on status
+    let statusLower = status.toLowerCase();
+    let headerColor = 'var(--text-primary)';
+    let borderBottom = 'var(--border-glass)';
+    if(statusLower.includes('completed')) { borderBottom = 'var(--accent-green)'; headerColor = 'var(--accent-green)'; }
+    else if(statusLower.includes('processing')) { borderBottom = 'var(--accent-cyan)'; headerColor = 'var(--accent-cyan)'; }
+    else if(statusLower.includes('pending')) { borderBottom = 'var(--accent-amber)'; headerColor = 'var(--accent-amber)'; }
+    else if(statusLower.includes('cancelled')) { borderBottom = 'var(--accent-rose)'; headerColor = 'var(--accent-rose)'; }
+    
+    html += `
+      <div class="kanban-column">
+        <div class="kanban-header" style="border-bottom: 2px solid ${borderBottom};">
+          <h3 style="color: ${headerColor}; text-transform: uppercase; font-size: 0.95rem; font-weight: 700;">${status}</h3>
+          <span class="report-count">${items.length}</span>
+        </div>
+        <div class="kanban-cards">
+          ${items.map(renderCard).join('')}
+        </div>
       </div>
-    </div>
-  `;
+    `;
+  });
   
-  // Section 2: Red Flags / Pending
-  html += `
-    <div style="margin-bottom: 40px;">
-      <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin: 20px 0; display:flex; align-items:center; gap:8px;">
-        <span style="font-size:1.5rem;">🚩</span> Red Flags & Pending Issues
-      </h3>
-      <div class="activity-timeline">
-        ${flags.length > 0 ? flags.map(renderItem).join('') : '<p style="color:var(--text-muted); font-style:italic;">No red flags this month. Great job!</p>'}
-      </div>
-    </div>
-  `;
-  
+  html += `</div>`;
   container.innerHTML = html;
 }
