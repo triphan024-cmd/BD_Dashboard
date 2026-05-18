@@ -97,6 +97,15 @@ function setupUI() {
       document.getElementById('sidebar').classList.remove('mobile-open');
     };
   });
+  
+  // RBAC
+  const loggedUser = sessionStorage.getItem('bd_logged_in');
+  if (loggedUser === 'nguyen') {
+    document.querySelectorAll('[data-view="podetails"], [data-view="analytics"]').forEach(el => el.style.display = 'none');
+  } else {
+    document.querySelectorAll('[data-view="podetails"], [data-view="analytics"]').forEach(el => el.style.display = '');
+  }
+  
   // Month nav
   document.getElementById('prev-month').onclick = () => { currentMonth--; if(currentMonth<1){currentMonth=12;currentYear--;} updateMonthDisplay(); renderAll(); };
   document.getElementById('next-month').onclick = () => { currentMonth++; if(currentMonth>12){currentMonth=1;currentYear++;} updateMonthDisplay(); renderAll(); };
@@ -344,7 +353,11 @@ function renderSOCustomerPie() {
       options3d: { enabled: true, alpha: 45, beta: 0 }
     },
     title: { text: null },
-    tooltip: { pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>' },
+    tooltip: { 
+      formatter: function() {
+        return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${shortFmt(this.point.y)} (${this.point.percentage.toFixed(1)}%)</b>`;
+      }
+    },
     plotOptions: {
       pie: {
         allowPointSelect: true,
