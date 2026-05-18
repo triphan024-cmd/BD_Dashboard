@@ -329,7 +329,8 @@ function renderSOCustomerPie() {
           display: true, color: '#fff', font: {weight: 'bold'},
           formatter: (value, context) => {
             const total = context.chart.data.datasets[0].data.reduce((a,b)=>a+b, 0);
-            return total > 0 ? Math.round(value/total*100) + '%' : '';
+            const pct = Math.round(value/total*100);
+            return pct > 2 ? pct + '%' : '';
           }
         }
       }
@@ -541,6 +542,9 @@ const modernChartPlugin = {
   }
 };
 Chart.register(modernChartPlugin);
+if (typeof ChartDataLabels !== 'undefined') {
+  Chart.register(ChartDataLabels);
+}
 
 function shortFmt(val) {
   if (val >= 1e9) return Number((val/1e9).toPrecision(3)) + 'B';
@@ -602,15 +606,16 @@ function renderStatusList() {
   });
   
   const statusColors = {
-    '2': '#007aff', '3': '#5ac8fa', '4': '#af52de',
-    '5': '#ff3b30', '6': '#34c759', '7': '#ff9f0a', '8': '#ff9f0a'
+    '1': '#8e8e93',
+    '2': '#007aff', '3': '#32ade6', '4': '#af52de',
+    '5': '#ff3b30', '6': '#34c759', '7': '#ff9f0a', '8': '#ffcc00'
   };
 
   const sorted = Object.entries(map).sort((a,b) => a[0].localeCompare(b[0]));
   document.getElementById('po-status-list').innerHTML = sorted.map(([name,val],i) => {
     const prefix = name.match(/^\d+/);
     const color = prefix && statusColors[prefix[0]] ? statusColors[prefix[0]] : '#8e8e93';
-    return `<div class="ranking-item"><div class="ranking-rank" style="background-color:${color}; color:#fff; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:0.75rem;">${prefix?prefix[0]:i+1}</div><div class="ranking-name" style="color:${color}; font-weight:600;" title="${name}">${name}</div><div class="ranking-value" style="color:${color}; font-weight:bold;">${fmtCurrency(val)}</div></div>`;
+    return `<div class="ranking-item"><div class="ranking-rank" style="color:${color}; border:2px solid ${color}; background-color:transparent; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:bold;">${prefix?prefix[0]:i+1}</div><div class="ranking-name" style="color:${color}; font-weight:600;" title="${name}">${name}</div><div class="ranking-value" style="color:${color}; font-weight:bold;">${fmtCurrency(val)}</div></div>`;
   }).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
 }
 
