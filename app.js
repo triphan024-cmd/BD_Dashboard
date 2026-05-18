@@ -349,7 +349,7 @@ function renderSOCustomerPie() {
   const others = sorted.slice(5).reduce((s,x)=>s+x[1],0);
   if (others > 0) top.push(['Khác', others]);
   
-  const colors = [c.primary, c.amber, c.green, c.cyan, c.rose, '#8e8e93'];
+  const colors = ['#A8E6CF', '#DCEDC1', '#FFD3B6', '#FFAAA5', '#FF8B94', '#9D94FF'];
 
   const hcData = top.map((x, i) => ({
     name: x[0],
