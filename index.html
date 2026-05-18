@@ -71,6 +71,10 @@
                     <span class="nav-icon">📈</span>
                     <span class="nav-label">Analytics</span>
                 </a>
+                <a href="#" class="nav-item" data-view="report">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-label">Report</span>
+                </a>
             </nav>
             <div class="sidebar-footer">
                 <button class="btn-settings" id="btn-settings" title="Sign Out">
@@ -219,6 +223,13 @@
                     <div class="chart-card glass-card"><div class="chart-header"><h3>Cumulative Growth</h3></div><div class="chart-body chart-tall"><canvas id="chart-cumulative"></canvas></div></div>
                 </div>
             </section>
+
+            <!-- View: Report -->
+            <section class="view-section" id="view-report">
+                <div class="iframe-container glass-card" style="width: 100%; height: calc(100vh - 110px); border-radius: var(--radius); overflow: hidden; padding: 0;">
+                    <iframe src="https://docs.google.com/spreadsheets/d/1UIqT7rWcfkaAJHZDR5Gzsb4LAcyvh2voVjwHDl7Be7U/edit?gid=0&rm=minimal" width="100%" height="100%" frameborder="0" style="display:block;"></iframe>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -228,6 +239,6 @@
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=11"></script>
+    <script src="app.js?v=12"></script>
 </body>
 </html>
