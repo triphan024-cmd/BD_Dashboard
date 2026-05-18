@@ -914,10 +914,10 @@ function renderReportBoard() {
           ${c.date ? `<div class="timeline-date"><span>🕒</span> ${c.date}</div>` : ''}
         </div>
         <div class="timeline-detail">${c.detail}</div>
-        ${c.result ? `<div class="timeline-box result"><strong>🎯 Result:</strong> ${c.result}</div>` : ''}
+        ${c.result ? `<div class="timeline-box result"><strong>🎯 Result:</strong><br>${c.result}</div>` : ''}
         ${c.action ? `<div class="timeline-box action"><strong>⚡ Action:</strong><br>${c.action}</div>` : ''}
-        ${c.suggestion ? `<div class="timeline-box suggestion" style="background:var(--bg-secondary); border-left:3px solid var(--accent-purple); margin-top:10px; padding:10px 14px; font-size:0.85rem; border-radius:6px; color:var(--text-primary);"><strong>💡 Suggest:</strong> ${c.suggestion}</div>` : ''}
-        ${c.pending ? `<div class="timeline-box pending" style="background:rgba(239,68,68,0.05); border-left:3px solid var(--accent-rose); margin-top:10px; padding:10px 14px; font-size:0.85rem; border-radius:6px; color:var(--text-primary);"><strong>⏳ Pending:</strong> <span style="color:var(--accent-rose); font-weight:600;">${c.pending}</span></div>` : ''}
+        ${c.suggestion ? `<div class="timeline-box suggestion" style="background:var(--bg-secondary); border-left:3px solid var(--accent-purple); margin-top:10px; padding:10px 14px; font-size:0.85rem; border-radius:6px; color:var(--text-primary);"><strong>💡 Suggest:</strong><br>${c.suggestion}</div>` : ''}
+        ${c.pending ? `<div class="timeline-box pending" style="background:rgba(239,68,68,0.05); border-left:3px solid var(--accent-rose); margin-top:10px; padding:10px 14px; font-size:0.85rem; border-radius:6px; color:var(--text-primary);"><strong>⏳ Pending:</strong><br><span style="color:var(--accent-rose); font-weight:600;">${c.pending}</span></div>` : ''}
       </div>
     `;
   };
