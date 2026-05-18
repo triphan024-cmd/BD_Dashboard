@@ -293,7 +293,7 @@ function renderNewCustomersSO() {
     }
   });
   
-  const sorted = Object.entries(newCustMap).sort((a,b)=>a[1].month - b[1].month || b[1].amount - a[1].amount);
+  const sorted = Object.entries(newCustMap).sort((a,b)=>b[1].amount - a[1].amount).slice(0,8);
   document.getElementById('new-customers-so').innerHTML = sorted.map(([name,data],i)=>
     `<div class="ranking-item"><div class="ranking-rank" style="font-size:0.75rem; width:auto; padding:0 6px;">T${data.month}</div><div class="ranking-name" title="${name}">${name}</div><div class="ranking-value">${fmtCurrency(data.amount)}</div></div>`
   ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No new customers in 2026</p>';
@@ -332,16 +332,16 @@ function renderSOCustomerPie() {
 }
 
 function renderTargetPOChart() {
-  const md = allData.filter(r => {
-    const parts = (r[COLS.SO_DATE]||'').split('/');
-    return parts[2] === '2026';
-  });
-  const totalPO = md.reduce((s,r) => s + num(r[COLS.AMOUNT]), 0);
+  const md2026 = allData.filter(r => (r[COLS.SO_DATE]||'').split('/')[2] === '2026');
+  const md2025 = allData.filter(r => (r[COLS.SO_DATE]||'').split('/')[2] === '2025');
+  const totalPO26 = md2026.reduce((s,r) => s + num(r[COLS.AMOUNT]), 0);
+  const totalPO25 = md2025.reduce((s,r) => s + num(r[COLS.AMOUNT]), 0);
   const target = 7000000000;
-  const percentage = Math.min((totalPO / target) * 100, 100).toFixed(1);
+  const percentage = Math.min((totalPO26 / target) * 100, 100).toFixed(1);
 
   document.getElementById('target-po-percentage').textContent = `${percentage}%`;
-  document.getElementById('target-po-text').textContent = `${(totalPO / 1e9).toFixed(2)}B / 7B VNĐ`;
+  document.getElementById('target-po-text').textContent = `${(totalPO26 / 1e9).toFixed(2)}B / 7B VNĐ`;
+  document.getElementById('target-po-2025').textContent = `vs 2025: ${(totalPO25 / 1e9).toFixed(2)}B`;
 
   if(charts.targetPO) charts.targetPO.destroy();
   charts.targetPO = new Chart(document.getElementById('chart-target-po'), {
@@ -349,13 +349,14 @@ function renderTargetPOChart() {
     data: {
       labels: ['Achieved', 'Remaining'],
       datasets: [{
-        data: [totalPO, Math.max(target - totalPO, 0)],
+        data: [totalPO26, Math.max(target - totalPO26, 0)],
         backgroundColor: [getChartColors().amber, getChartColors().grid],
         borderWidth: 0, hoverOffset: 4
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false, cutout: '80%',
+      circumference: 180, rotation: 270,
       plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } },
     }
   });
@@ -396,13 +397,17 @@ function renderTopCustomersIV() {
 }
 
 function renderTargetChart() {
-  const md = allData.filter(r => r[COLS.IV_YEAR] === '2026');
-  const totalRev = md.reduce((s,r) => s + num(r[COLS.REVENUE]), 0);
+  const md2026 = allData.filter(r => r[COLS.IV_YEAR] === '2026');
+  const md2025 = allData.filter(r => r[COLS.IV_YEAR] === '2025');
+  
+  const totalRev26 = md2026.reduce((s,r) => s + num(r[COLS.REVENUE]), 0);
+  const totalRev25 = md2025.reduce((s,r) => s + num(r[COLS.REVENUE]), 0);
   const target = 7000000000;
-  const percentage = Math.min((totalRev / target) * 100, 100).toFixed(1);
+  const percentage = Math.min((totalRev26 / target) * 100, 100).toFixed(1);
 
   document.getElementById('target-percentage').textContent = `${percentage}%`;
-  document.getElementById('target-revenue-text').textContent = `${(totalRev / 1e9).toFixed(2)}B / 7B VNĐ`;
+  document.getElementById('target-revenue-text').textContent = `${(totalRev26 / 1e9).toFixed(2)}B / 7B VNĐ`;
+  document.getElementById('target-rev-2025').textContent = `vs 2025: ${(totalRev25 / 1e9).toFixed(2)}B`;
 
   if(charts.targetProgress) charts.targetProgress.destroy();
   charts.targetProgress = new Chart(document.getElementById('chart-target-progress'), {
@@ -410,7 +415,7 @@ function renderTargetChart() {
     data: {
       labels: ['Achieved', 'Remaining'],
       datasets: [{
-        data: [totalRev, Math.max(target - totalRev, 0)],
+        data: [totalRev26, Math.max(target - totalRev26, 0)],
         backgroundColor: [getChartColors().primary, getChartColors().grid],
         borderWidth: 0,
         hoverOffset: 4
@@ -420,6 +425,7 @@ function renderTargetChart() {
       responsive: true,
       maintainAspectRatio: false,
       cutout: '80%',
+      circumference: 180, rotation: 270,
       plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } },
     }
   });
@@ -428,15 +434,15 @@ function renderTargetChart() {
 function renderMonthlyDebtChart() {
   const c = getChartColors();
   const months = getLast12Months();
-  const data = months.map(({m,y})=>getMonthData(m,y).reduce((s,r)=>s+num(r[COLS.BALANCE]),0));
+  const data = months.map(({m,y})=>getMonthData(m,y).reduce((s,r)=>s+(num(r[COLS.BALANCE])>0 ? num(r[COLS.AMOUNT]) : 0),0));
   
   if(charts.debtMonthly) charts.debtMonthly.destroy();
   charts.debtMonthly = new Chart(document.getElementById('chart-debt-monthly'), {
     type: 'bar', data: {
       labels: months.map(x=>x.label),
       datasets: [{
-        label: 'Debt', data,
-        backgroundColor: 'rgba(255,59,48,0.2)', borderColor: c.rose, borderWidth: 2, borderRadius: 6
+        label: 'Debt Amount', data,
+        backgroundColor: 'rgba(255,59,48,0.25)', borderColor: c.rose, borderWidth: 2, borderRadius: 6
       }]
     }, options: chartDefaults()
   });
@@ -447,7 +453,7 @@ function renderPendingDebtList() {
   const map = {};
   md.forEach(r => {
     const cust = r[COLS.CUSTOMER] || 'Khác';
-    map[cust] = (map[cust]||0) + num(r[COLS.BALANCE]);
+    map[cust] = (map[cust]||0) + num(r[COLS.AMOUNT]);
   });
   
   const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
@@ -484,6 +490,26 @@ function getChartColors() {
     text: '#86868b'
   };
 }
+
+const modernChartPlugin = {
+  id: 'modernChartPlugin',
+  beforeDatasetsDraw: function(chart, args, options) {
+    if (chart.config.type === 'bar' || chart.config.type === 'line') {
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 4;
+    }
+  },
+  afterDatasetsDraw: function(chart, args, options) {
+    if (chart.config.type === 'bar' || chart.config.type === 'line') {
+      chart.ctx.restore();
+    }
+  }
+};
+Chart.register(modernChartPlugin);
 
 function shortFmt(val) {
   if (val >= 1e9) return (val/1e9).toFixed(1) + 'B';
@@ -538,19 +564,20 @@ function renderStatusList() {
   const map = {};
   md.forEach(r => {
     const st = r[COLS.STATUS] || 'Khác';
+    if(st.toLowerCase().includes('deleted') || st.toLowerCase().includes('cancel')) return;
     map[st] = (map[st] || 0) + num(r[COLS.AMOUNT]);
   });
   
   const statusColors = {
     '2': '#007aff', '3': '#5ac8fa', '4': '#af52de',
-    '5': '#ff3b30', '6': '#34c759', '7': '#ff9f0a', '8': '#ffcc00'
+    '5': '#ff3b30', '6': '#34c759', '7': '#ff9f0a', '8': '#ff9f0a'
   };
 
   const sorted = Object.entries(map).sort((a,b) => a[0].localeCompare(b[0]));
   document.getElementById('po-status-list').innerHTML = sorted.map(([name,val],i) => {
     const prefix = name.match(/^\d+/);
     const color = prefix && statusColors[prefix[0]] ? statusColors[prefix[0]] : '#8e8e93';
-    return `<div class="ranking-item"><div class="ranking-rank" style="background-color:${color}; color:#fff; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:0.75rem;">${prefix?prefix[0]:i+1}</div><div class="ranking-name" title="${name}">${name}</div><div class="ranking-value" style="color:${color}; font-weight:bold;">${fmtCurrency(val)}</div></div>`;
+    return `<div class="ranking-item"><div class="ranking-rank" style="background-color:${color}; color:#fff; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:0.75rem;">${prefix?prefix[0]:i+1}</div><div class="ranking-name" style="color:${color}; font-weight:600;" title="${name}">${name}</div><div class="ranking-value" style="color:${color}; font-weight:bold;">${fmtCurrency(val)}</div></div>`;
   }).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
 }
 

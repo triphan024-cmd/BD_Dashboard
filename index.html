@@ -110,8 +110,8 @@
             <!-- View: PO Status -->
             <section class="view-section active" id="view-postatus">
                 <div class="kpi-grid">
-                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper"><span class="kpi-icon">📦</span></div><div class="kpi-info"><span class="kpi-label">Total PO Received</span><span class="kpi-value" id="kpi-so-count">—</span></div><div class="kpi-trend" id="kpi-so-count-trend"></div></div>
                     <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-amber"><span class="kpi-icon">💰</span></div><div class="kpi-info"><span class="kpi-label">Total Amount</span><span class="kpi-value" id="kpi-so-amount">—</span></div><div class="kpi-trend" id="kpi-so-amount-trend"></div></div>
+                    <div class="kpi-card glass-card"><div class="kpi-icon-wrapper"><span class="kpi-icon">📦</span></div><div class="kpi-info"><span class="kpi-label">Total PO Received</span><span class="kpi-value" id="kpi-so-count">—</span></div><div class="kpi-trend" id="kpi-so-count-trend"></div></div>
                     <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-cyan"><span class="kpi-icon">🏢</span></div><div class="kpi-info"><span class="kpi-label">Customers</span><span class="kpi-value" id="kpi-so-customers">—</span></div><div class="kpi-trend" id="kpi-so-customers-trend"></div></div>
                     <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-purple"><span class="kpi-icon">📊</span></div><div class="kpi-info"><span class="kpi-label">Avg / Order</span><span class="kpi-value" id="kpi-so-avg">—</span></div><div class="kpi-trend" id="kpi-so-avg-trend"></div></div>
                 </div>
@@ -124,11 +124,12 @@
                     <div class="chart-card glass-card">
                         <div class="chart-header"><h3>Target 2026 (PO)</h3><span class="chart-sub">7,000,000,000 VNĐ</span></div>
                         <div class="chart-body" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                            <div style="position:relative; width: 200px; height: 200px;">
+                            <div style="position:relative; width: 220px; height: 120px;">
                                 <canvas id="chart-target-po"></canvas>
-                                <div id="target-po-percentage" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:2.2rem; font-weight:800; color:var(--accent-primary);">0%</div>
+                                <div id="target-po-percentage" style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); font-size:2.2rem; font-weight:800; color:var(--accent-primary);">0%</div>
                             </div>
-                            <div style="margin-top:20px; font-size:1.1rem; font-weight:600; color:var(--text-secondary);" id="target-po-text">0 / 7B</div>
+                            <div style="margin-top:10px; font-size:1.1rem; font-weight:600; color:var(--text-secondary);" id="target-po-text">0 / 7B</div>
+                            <div style="margin-top:5px; font-size:0.8rem; color:var(--text-muted);" id="target-po-2025">vs 2025: —</div>
                         </div>
                     </div>
                 </div>
@@ -156,11 +157,12 @@
                     <div class="chart-card glass-card">
                         <div class="chart-header"><h3>Target 2026 (Revenue)</h3><span class="chart-sub">7,000,000,000 VNĐ</span></div>
                         <div class="chart-body" style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                            <div style="position:relative; width: 200px; height: 200px;">
+                            <div style="position:relative; width: 220px; height: 120px;">
                                 <canvas id="chart-target-progress"></canvas>
-                                <div id="target-percentage" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:2.2rem; font-weight:800; color:var(--accent-primary);">0%</div>
+                                <div id="target-percentage" style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); font-size:2.2rem; font-weight:800; color:var(--accent-primary);">0%</div>
                             </div>
-                            <div style="margin-top:20px; font-size:1.1rem; font-weight:600; color:var(--text-secondary);" id="target-revenue-text">0 / 7B</div>
+                            <div style="margin-top:10px; font-size:1.1rem; font-weight:600; color:var(--text-secondary);" id="target-revenue-text">0 / 7B</div>
+                            <div style="margin-top:5px; font-size:0.8rem; color:var(--text-muted);" id="target-rev-2025">vs 2025: —</div>
                         </div>
                     </div>
                 </div>
@@ -204,6 +206,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
 </body>
 </html>
