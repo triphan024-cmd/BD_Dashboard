@@ -232,7 +232,7 @@
                             <span style="font-size:1.5rem;">📊</span> BD Monthly Report
                         </h2>
                         <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 6px 0 0 0;">
-                            Strategic highlights and key flags for <strong style="color: var(--accent-primary);" id="report-month-label">...</strong>
+                            Activity log and strategic highlights for <strong style="color: var(--accent-primary);" id="report-month-label">...</strong>
                         </p>
                     </div>
                     <div style="display:flex; gap: 12px; align-items:center;">
@@ -242,27 +242,9 @@
                     </div>
                 </div>
                 
-                <div class="report-board">
-                    <!-- Wins Column -->
-                    <div class="report-column" id="report-col-win">
-                        <div class="report-col-header" style="border-bottom: 3px solid var(--accent-green);">
-                            <h3>🏆 Key Wins & Achievements</h3>
-                            <span class="report-count" id="count-win">0</span>
-                        </div>
-                        <div class="report-cards" id="cards-win">
-                            <!-- Cards injected via JS -->
-                        </div>
-                    </div>
-                    
-                    <!-- Red Flags Column -->
-                    <div class="report-column" id="report-col-redflag">
-                        <div class="report-col-header" style="border-bottom: 3px solid var(--accent-rose);">
-                            <h3>🚩 Red Flags & Risks</h3>
-                            <span class="report-count" id="count-redflag">0</span>
-                        </div>
-                        <div class="report-cards" id="cards-redflag">
-                            <!-- Cards injected via JS -->
-                        </div>
+                <div class="timeline-container">
+                    <div class="activity-timeline" id="activity-timeline">
+                        <!-- Timeline items injected via JS -->
                     </div>
                 </div>
             </section>
@@ -275,6 +257,6 @@
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=15"></script>
+    <script src="app.js?v=16"></script>
 </body>
 </html>

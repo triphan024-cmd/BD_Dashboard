@@ -869,34 +869,48 @@ async function fetchReportData() {
 }
 
 function renderReportBoard() {
-  const mStr = String(currentMonth).padStart(2, '0');
-  const yStr = String(currentYear);
+  const filtered = reportDataList.filter(r => {
+    let rm = parseInt(r.month, 10);
+    let ry = parseInt(r.year, 10);
+    return rm === currentMonth && ry === currentYear;
+  });
   
-  const filtered = reportDataList.filter(r => r.month === mStr && r.year === yStr);
+  const container = document.getElementById('activity-timeline');
+  if (!container) return;
   
-  const wins = filtered.filter(r => r.type === 'Win');
-  const flags = filtered.filter(r => r.type === 'Red Flag');
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">No activities recorded for this month.</div>';
+    return;
+  }
   
-  document.getElementById('count-win').textContent = wins.length;
-  document.getElementById('count-redflag').textContent = flags.length;
-  
-  const renderCard = (c) => {
+  const renderItem = (c) => {
+    let isWin = c.type.toLowerCase().includes('win');
+    let itemClass = isWin ? 'win' : 'redflag';
+    
     let topicClass = 'topic-other';
     if (c.topic.toLowerCase().includes('project')) topicClass = 'topic-project';
     else if (c.topic.toLowerCase().includes('hr')) topicClass = 'topic-hr';
     else if (c.topic.toLowerCase().includes('po')) topicClass = 'topic-po';
     
     return `
-      <div class="report-card">
-        <span class="card-topic ${topicClass}">${c.topic}</span>
-        <div class="card-detail">${c.detail}</div>
-        ${c.result ? `<div class="card-result"><b>Result:</b> ${c.result}</div>` : ''}
-        ${c.action ? `<div class="card-action"><b>Action:</b><br>${c.action}</div>` : ''}
-        ${c.suggestion ? `<div class="card-suggestion">💡 ${c.suggestion}</div>` : ''}
+      <div class="timeline-item ${itemClass}">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-header">
+            <div class="timeline-badges">
+              <span class="badge-type ${itemClass}">${c.type}</span>
+              <span class="badge-topic ${topicClass}">${c.topic}</span>
+            </div>
+            ${c.date ? `<div class="timeline-date"><span>🕒</span> ${c.date}</div>` : ''}
+          </div>
+          <div class="timeline-detail">${c.detail}</div>
+          ${c.result ? `<div class="timeline-box result"><strong>🎯 Result:</strong> ${c.result}</div>` : ''}
+          ${c.action ? `<div class="timeline-box action"><strong>⚡ Action:</strong><br>${c.action}</div>` : ''}
+          ${c.suggestion ? `<div class="timeline-box suggestion">💡 <span>${c.suggestion}</span></div>` : ''}
+        </div>
       </div>
     `;
   };
   
-  document.getElementById('cards-win').innerHTML = wins.map(renderCard).join('') || '<p style="color:var(--text-muted);text-align:center;padding:20px;">No wins recorded this month.</p>';
-  document.getElementById('cards-redflag').innerHTML = flags.map(renderCard).join('') || '<p style="color:var(--text-muted);text-align:center;padding:20px;">No red flags this month. Great job!</p>';
+  container.innerHTML = filtered.map(renderItem).join('');
 }
