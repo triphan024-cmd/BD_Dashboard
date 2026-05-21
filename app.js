@@ -15,7 +15,9 @@ const CONFIG = {
 const USERS = [
   { user: 'tri', pass: 'bd2026' },
   { user: 'admin', pass: 'antigravity' },
-  { user: 'nguyên', pass: 'Nguyen120981_@!' }
+  { user: 'nguyên', pass: 'Nguyen120981_@!' },
+  { user: 'trinh', pass: 'ht0403' },
+  { user: 'hue', pass: 'bh1510' }
 ];
 
 const COLS = {
