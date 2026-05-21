@@ -181,16 +181,22 @@ function parseSODate(v) {
   return null;
 }
 
+function isValidPO(r) {
+  const st = (r[COLS.STATUS] || '').toLowerCase();
+  return !st.includes('deleted') && !st.includes('cancel');
+}
+
 // Get data filtered by IV Month/Year (invoice - actual revenue)
 function getMonthData(m, y) {
   m = m || currentMonth; y = y || currentYear;
-  return allData.filter(r => num(r[COLS.IV_MONTH]) === m && num(r[COLS.IV_YEAR]) === y);
+  return allData.filter(r => isValidPO(r) && num(r[COLS.IV_MONTH]) === m && num(r[COLS.IV_YEAR]) === y);
 }
 
 // Get data filtered by SO Date month/year (PO received)
 function getSOMonthData(m, y) {
   m = m || currentMonth; y = y || currentYear;
   return allData.filter(r => {
+    if (!isValidPO(r)) return false;
     const d = parseSODate(r[COLS.SO_DATE]);
     return d && d.month === m && d.year === y;
   });
@@ -285,7 +291,7 @@ function renderSOAmountChart() {
 
 function renderTopCustomersSO() {
   const md = getSOMonthData();
-  const md2026 = allData.filter(r => (r[COLS.SO_DATE]||'').split('/')[2] === '2026');
+  const md2026 = allData.filter(r => isValidPO(r) && (r[COLS.SO_DATE]||'').split('/')[2] === '2026');
   
   const mapMonth = {};
   md.forEach(r=>{ const c=r[COLS.CUSTOMER]||'N/A'; mapMonth[c]=(mapMonth[c]||0)+num(r[COLS.AMOUNT]); });
@@ -308,10 +314,12 @@ function renderTopCustomersSO() {
 
 function renderNewCustomersSO() {
   const data2026SO = allData.filter(r => {
+    if (!isValidPO(r)) return false;
     const parts = (r[COLS.SO_DATE]||'').split('/');
     return parts[2] === '2026';
   });
   const pastData = allData.filter(r => {
+    if (!isValidPO(r)) return false;
     const parts = (r[COLS.SO_DATE]||'').split('/');
     return parts[2] && parseInt(parts[2], 10) < 2026;
   });
@@ -337,6 +345,7 @@ function renderNewCustomersSO() {
 function renderSOCustomerPie() {
   const c = getChartColors();
   const md = allData.filter(r => {
+    if (!isValidPO(r)) return false;
     const parts = (r[COLS.SO_DATE]||'').split('/');
     return parts[2] === '2026';
   });
@@ -398,8 +407,8 @@ function renderSOCustomerPie() {
 }
 
 function renderTargetPOChart() {
-  const md2026 = allData.filter(r => (r[COLS.SO_DATE]||'').split('/')[2] === '2026');
-  const md2025 = allData.filter(r => (r[COLS.SO_DATE]||'').split('/')[2] === '2025');
+  const md2026 = allData.filter(r => isValidPO(r) && (r[COLS.SO_DATE]||'').split('/')[2] === '2026');
+  const md2025 = allData.filter(r => isValidPO(r) && (r[COLS.SO_DATE]||'').split('/')[2] === '2025');
   const totalPO26 = md2026.reduce((s,r) => s + num(r[COLS.AMOUNT]), 0);
   const totalPO25 = md2025.reduce((s,r) => s + num(r[COLS.AMOUNT]), 0);
   const target26 = 7000000000;
@@ -455,7 +464,7 @@ function renderIVKPIs() {
 
 function renderTopCustomersIV() {
   const md = getMonthData();
-  const md2026 = allData.filter(r => r[COLS.IV_YEAR] === '2026');
+  const md2026 = allData.filter(r => isValidPO(r) && r[COLS.IV_YEAR] === '2026');
   
   const mapMonth = {};
   md.forEach(r=>{ const c=r[COLS.CUSTOMER]||'N/A'; mapMonth[c]=(mapMonth[c]||0)+num(r[COLS.REVENUE]); });
@@ -477,8 +486,8 @@ function renderTopCustomersIV() {
 }
 
 function renderTargetChart() {
-  const md2026 = allData.filter(r => r[COLS.IV_YEAR] === '2026');
-  const md2025 = allData.filter(r => r[COLS.IV_YEAR] === '2025');
+  const md2026 = allData.filter(r => isValidPO(r) && r[COLS.IV_YEAR] === '2026');
+  const md2025 = allData.filter(r => isValidPO(r) && r[COLS.IV_YEAR] === '2025');
   
   const totalRev26 = md2026.reduce((s,r) => s + num(r[COLS.REVENUE]), 0);
   const totalRev25 = md2025.reduce((s,r) => s + num(r[COLS.REVENUE]), 0);
@@ -534,9 +543,9 @@ function renderMonthlyDebtChart() {
 
 function renderPendingDebtList() {
   const md = allData.filter(r => {
-    if (r[COLS.IV_YEAR] !== '2026') return false;
-    const st = (r[COLS.STATUS]||'').toLowerCase();
-    return !st.includes('8.') && !st.includes('completed') && !st.includes('cancel') && !st.includes('deleted');
+    if (!isValidPO(r)) return false;
+    const pendingAmount = num(r[COLS.PENDING]);
+    return pendingAmount > 0;
   });
   const map = {};
   md.forEach(r => {
