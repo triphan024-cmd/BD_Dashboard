@@ -119,6 +119,9 @@ function setupUI() {
   document.querySelectorAll('.chart-btn').forEach(b => {
     b.onclick = () => { document.querySelectorAll('.chart-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderRevenueChart(b.dataset.chartType); };
   });
+  document.querySelectorAll('.chart-btn-so').forEach(b => {
+    b.onclick = () => { document.querySelectorAll('.chart-btn-so').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderSOAmountChart(b.dataset.chartType); };
+  });
   updateMonthDisplay();
 }
 
@@ -276,14 +279,19 @@ function renderSOMonthlyChart() {
   });
 }
 
-function renderSOAmountChart() {
+function renderSOAmountChart(type) {
+  type = type || 'bar';
   const c = getChartColors();
   const months = getLast12Months();
   const data = months.map(({m,y})=>getSOMonthData(m,y).reduce((s,r)=>s+num(r[COLS.AMOUNT]),0));
   if(charts.soAmount) charts.soAmount.destroy();
   charts.soAmount = new Chart(document.getElementById('chart-so-amount'), {
-    type:'line', data:{ labels:months.map(x=>x.label), datasets:[{
-      label:'Amount', data, borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.15)', fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:'#f59e0b'
+    type, data:{ labels:months.map(x=>x.label), datasets:[{
+      label:'Amount', data, 
+      borderColor:'#f59e0b', 
+      backgroundColor: type === 'bar' ? 'rgba(245,158,11,0.15)' : 'transparent', 
+      fill: type==='line', tension:0.4, pointRadius:4, pointBackgroundColor:'#f59e0b',
+      borderWidth: 2, borderRadius: type==='bar' ? 6 : 0
     }]}, options:chartDefaults(),
     plugins: [ChartDataLabels]
   });
@@ -544,8 +552,9 @@ function renderMonthlyDebtChart() {
 function renderPendingDebtList() {
   const md = allData.filter(r => {
     if (!isValidPO(r)) return false;
-    const pendingAmount = num(r[COLS.PENDING]);
-    return pendingAmount > 0;
+    if (r[COLS.IV_YEAR] !== '2026') return false;
+    const st = (r[COLS.STATUS]||'').toLowerCase();
+    return !st.includes('8.') && !st.includes('completed');
   });
   const map = {};
   md.forEach(r => {
@@ -644,7 +653,7 @@ function chartDefaults() {
 }
 
 function renderRevenueChart(type) {
-  type = type || 'bar';
+  type = type || 'line';
   const c = getChartColors();
   const months = getLast12Months();
   const data = months.map(({m,y}) => getMonthData(m,y).reduce((s,r)=>s+num(r[COLS.REVENUE]),0));
