@@ -1257,11 +1257,11 @@ function renderQuotationCharts() {
     try { charts.qtSecondary.destroy(); } catch(e){}
   }
   charts.qtSecondary = Highcharts.chart('chart-qt-secondary', {
-    chart: { type: 'pie', backgroundColor: 'transparent', options3d: { enabled: true, alpha: 45, beta: 0 }, margin: [0, 0, 0, 0] },
+    chart: { type: 'pie', backgroundColor: 'transparent', options3d: { enabled: true, alpha: 45, beta: 0 } },
     title: { text: null },
     credits: { enabled: false },
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${fmtCurrency(this.point.y)} (${this.point.percentage.toFixed(1)}%)</b>`; } },
-    plotOptions: { pie: { size: '70%', center: ['50%', '50%'], allowPointSelect: true, cursor: 'pointer', depth: 35, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
+    plotOptions: { pie: { size: '65%', center: ['50%', '50%'], allowPointSelect: true, cursor: 'pointer', depth: 25, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
     series: [{ name: isGeneral ? 'Customer' : 'Brand', data: hcDataSec }]
   });
 
@@ -1281,11 +1281,11 @@ function renderQuotationCharts() {
     try { charts.qtStatus.destroy(); } catch(e){}
   }
   charts.qtStatus = Highcharts.chart('chart-qt-status', {
-    chart: { type: 'pie', backgroundColor: 'transparent', options3d: { enabled: true, alpha: 45, beta: 0 }, margin: [0, 0, 0, 0] },
+    chart: { type: 'pie', backgroundColor: 'transparent', options3d: { enabled: true, alpha: 45, beta: 0 } },
     title: { text: null },
     credits: { enabled: false },
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${this.point.y} (${this.point.percentage.toFixed(1)}%)</b>`; } },
-    plotOptions: { pie: { size: '70%', center: ['50%', '50%'], allowPointSelect: true, cursor: 'pointer', depth: 35, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
+    plotOptions: { pie: { size: '65%', center: ['50%', '50%'], allowPointSelect: true, cursor: 'pointer', depth: 25, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
     series: [{ name: 'Status', data: hcDataStatus }]
   });
 
@@ -1364,4 +1364,12 @@ function renderQuotationTable() {
       <td><span class="status-badge ${getStatusClass(q.status)}">${q.status}</span></td>
     </tr>
   `).join('');
+}
+
+function filterQuotationTable() {
+  const term = (document.getElementById('qt-search').value || '').toLowerCase();
+  const trs = document.querySelectorAll('#qt-recent-tbody tr');
+  trs.forEach(tr => {
+    tr.style.display = tr.textContent.toLowerCase().includes(term) ? '' : 'none';
+  });
 }

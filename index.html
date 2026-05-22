@@ -94,8 +94,8 @@
                 <div class="header-left">
                     <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
                     <div>
-                        <h1 id="page-title">PO Received</h1>
-                        <p class="header-subtitle" id="header-subtitle">BD Team — Trí</p>
+                        <h1 id="page-title">Quotation</h1>
+                        <p class="header-subtitle" id="header-subtitle">BD Team — Trình</p>
                     </div>
                 </div>
                 <div class="header-right">
@@ -221,7 +221,7 @@
             <!-- View: Analytics -->
             <div class="view-container">
                 <!-- View: Overview -->
-                <section id="view-overview" class="view-section active">
+                <section id="view-overview" class="view-section">
                     <!-- KPI Grid -->
                     <div class="kpi-grid">
                         <div class="kpi-card glass-card primary-gradient">
@@ -402,14 +402,14 @@
                                 <h3 id="qt-secondary-title">Quotations by Customer</h3>
                                 <span class="chart-sub">Distribution</span>
                             </div>
-                            <div class="chart-body"><div id="chart-qt-secondary" style="height:100%; min-height:300px;"></div></div>
+                            <div class="chart-body"><div id="chart-qt-secondary" style="height:100%; min-height:420px;"></div></div>
                         </div>
                         <div class="chart-card glass-card">
                             <div class="chart-header">
                                 <h3>Quotation Status</h3>
                                 <span class="chart-sub">Distribution</span>
                             </div>
-                            <div class="chart-body"><div id="chart-qt-status" style="height:100%; min-height:300px;"></div></div>
+                            <div class="chart-body"><div id="chart-qt-status" style="height:100%; min-height:420px;"></div></div>
                         </div>
                     </div>
                     
@@ -437,6 +437,9 @@
                     <div class="card glass-card table-card" style="margin-top:20px;">
                         <div class="table-header">
                             <h2>Recent Quotations</h2>
+                            <div class="table-actions">
+                                <input type="text" id="qt-search" placeholder="Search quotations..." class="search-input" onkeyup="filterQuotationTable()">
+                            </div>
                         </div>
                         <div class="table-container">
                             <table class="data-table">
@@ -497,6 +500,6 @@
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=48"></script>
+    <script src="app.js?v=49"></script>
 </body>
 </html>
