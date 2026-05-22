@@ -1017,23 +1017,37 @@ function renderReportBoard() {
 // ===== QUOTATION DATA =====
 async function fetchQuotationData() {
   try {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.QT_SHEET_ID}/values:batchGet?ranges=QT26!A1:AZ&ranges='QT KL'!A1:AZ&ranges='QT SS'!A1:AZ&key=${CONFIG.API_KEY}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.QT_SHEET_ID}/values:batchGet?ranges=QT26!A1:AZ&ranges=${encodeURIComponent("'QT KL'!A1:AZ")}&ranges=${encodeURIComponent("'QT SS'!A1:AZ")}&key=${CONFIG.API_KEY}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`QT API Error: ${res.status}`);
     const json = await res.json();
     allQuotations = [];
+    
+    let masterColMap = null;
+    
     if (json.valueRanges) {
       json.valueRanges.forEach(vr => {
         const rows = vr.values || [];
-        if (rows.length < 2) return;
+        if (rows.length < 1) return;
         
         let headerRow = rows.find(r => r.some(c => c === 'Customer' || c === 'Amount' || c === 'Status'));
-        if (!headerRow) headerRow = rows[0] || rows[1];
+        let colMap = {};
+        let dataStartIndex = 0;
         
-        const colMap = {};
-        headerRow.forEach((c, i) => { if (c) colMap[String(c).trim()] = i; });
+        if (headerRow) {
+          headerRow.forEach((c, i) => { if (c) colMap[String(c).trim()] = i; });
+          masterColMap = colMap;
+          dataStartIndex = rows.indexOf(headerRow) + 1;
+        } else {
+          // Fallback to master col map if this sheet doesn't have headers
+          if (masterColMap) {
+            colMap = masterColMap;
+            dataStartIndex = 0; // all rows are data
+          } else {
+            return;
+          }
+        }
         
-        const dataStartIndex = rows.indexOf(headerRow) + 1;
         for (let i = dataStartIndex; i < rows.length; i++) {
           const r = rows[i];
           if (!r || r.length === 0) continue;
@@ -1053,11 +1067,19 @@ async function fetchQuotationData() {
           
           // Fallback parsing if Q Month or Q Year is missing
           if (!qMonth || !qYear) {
-            const dateStr = qDate || prDate;
-            const parsed = parseSODate(dateStr.split(' ')[0]);
-            if (parsed) {
-              qMonth = parsed.month;
-              qYear = parsed.year;
+            if (qDate) {
+              const dObj = new Date(qDate);
+              if (!isNaN(dObj.getTime())) {
+                qMonth = dObj.getMonth() + 1;
+                qYear = dObj.getFullYear();
+              }
+            }
+            if (!qMonth || !qYear) {
+              const parsed = parseSODate(prDate.split(' ')[0]);
+              if (parsed) {
+                qMonth = parsed.month;
+                qYear = parsed.year;
+              }
             }
           }
           const brand = r[colMap['Brand']] || '';
