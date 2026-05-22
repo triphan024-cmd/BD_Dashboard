@@ -610,9 +610,9 @@ body::before {
     color: var(--text-primary);
 }
 .qt-tab-btn.active {
-    background: var(--accent-blue);
+    background: var(--accent-primary);
     color: #fff;
-    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 4px 16px var(--accent-primary-glow);
     transform: translateY(-1px);
 }
 .qt-tab-btn::after {

@@ -172,6 +172,9 @@ function updateMonthDisplay() {
 // ===== DATA FETCH =====
 async function fetchData() {
   try {
+    const loader = document.getElementById('loading-screen');
+    if (loader) loader.style.display = 'flex';
+
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(CONFIG.SHEET_NAME)}?key=${CONFIG.API_KEY}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`API Error: ${res.status}`);
@@ -1116,10 +1119,16 @@ async function fetchQuotationData() {
           // Fallback parsing if Q Month or Q Year is missing
           if (!qMonth || !qYear) {
             if (qDate) {
-              const dObj = new Date(qDate);
-              if (!isNaN(dObj.getTime())) {
-                qMonth = dObj.getMonth() + 1;
-                qYear = dObj.getFullYear();
+              const qParsed = parseSODate(qDate.split(' ')[0]);
+              if (qParsed) {
+                qMonth = qParsed.month;
+                qYear = qParsed.year;
+              } else {
+                const dObj = new Date(qDate);
+                if (!isNaN(dObj.getTime())) {
+                  qMonth = dObj.getMonth() + 1;
+                  qYear = dObj.getFullYear();
+                }
               }
             }
             if (!qMonth || !qYear) {
