@@ -1047,8 +1047,19 @@ async function fetchQuotationData() {
           const amount = num(amountStr);
           const prDate = r[colMap['PR Date']] || '';
           const qDate = r[colMap['Q Date']] || '';
-          const qMonth = num(r[colMap['Q Month']]);
-          const qYear = num(r[colMap['Q Year']]);
+          
+          let qMonth = num(r[colMap['Q Month']]);
+          let qYear = num(r[colMap['Q Year']]);
+          
+          // Fallback parsing if Q Month or Q Year is missing
+          if (!qMonth || !qYear) {
+            const dateStr = qDate || prDate;
+            const parsed = parseSODate(dateStr.split(' ')[0]);
+            if (parsed) {
+              qMonth = parsed.month;
+              qYear = parsed.year;
+            }
+          }
           const brand = r[colMap['Brand']] || '';
           const itemName = r[colMap['Name']] || r[colMap['Name EN']] || '';
           const sales = r[colMap['Sales']] || '';

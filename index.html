@@ -228,34 +228,10 @@
                 </div>
             </section>
 
-            <!-- REPORT VIEW -->
-            <section id="view-report" class="view-section">
-                <!-- (Report content unchanged) -->
-                <div class="report-board">
-                    <div class="report-column">
-                        <div class="report-col-header" style="border-bottom-color:var(--accent-blue)">
-                            <h3 style="color:var(--accent-blue)">Result</h3>
-                        </div>
-                        <div class="report-col-body" id="report-result"></div>
-                    </div>
-                    <div class="report-column">
-                        <div class="report-col-header" style="border-bottom-color:var(--accent-green)">
-                            <h3 style="color:var(--accent-green)">Action</h3>
-                        </div>
-                        <div class="report-col-body" id="report-action"></div>
-                    </div>
-                    <div class="report-column">
-                        <div class="report-col-header" style="border-bottom-color:var(--accent-amber)">
-                            <h3 style="color:var(--accent-amber)">Suggest</h3>
-                        </div>
-                        <div class="report-col-body" id="report-suggest"></div>
-                    </div>
-                    <div class="report-column">
-                        <div class="report-col-header" style="border-bottom-color:var(--accent-rose)">
-                            <h3 style="color:var(--accent-rose)">Pending</h3>
-                        </div>
-                        <div class="report-col-body" id="report-pending"></div>
-                    </div>
+            <!-- View: Report -->
+            <section class="view-section" id="view-report">
+                <div class="timeline-container" id="report-timeline-container" style="height: calc(100vh - 100px); padding: 0 20px;">
+                    <!-- Activity timeline generated via JS -->
                 </div>
             </section>
 
@@ -330,6 +306,6 @@
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=33"></script>
+    <script src="app.js?v=34"></script>
 </body>
 </html>
