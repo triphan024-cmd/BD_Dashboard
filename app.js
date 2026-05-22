@@ -1253,11 +1253,11 @@ function renderQuotationCharts() {
     try { charts.qtSecondary.destroy(); } catch(e){}
   }
   charts.qtSecondary = Highcharts.chart('chart-qt-secondary', {
-    chart: { type: 'pie', backgroundColor: 'transparent', options3d: { enabled: true, alpha: 45, beta: 0 } },
+    chart: { type: 'pie', backgroundColor: 'transparent', options3d: { enabled: true, alpha: 45, beta: 0 }, margin: [0, 0, 0, 0] },
     title: { text: null },
     credits: { enabled: false },
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${fmtCurrency(this.point.y)} (${this.point.percentage.toFixed(1)}%)</b>`; } },
-    plotOptions: { pie: { allowPointSelect: true, cursor: 'pointer', depth: 35, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
+    plotOptions: { pie: { size: '85%', center: ['50%', '50%'], allowPointSelect: true, cursor: 'pointer', depth: 35, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
     series: [{ name: isGeneral ? 'Customer' : 'Brand', data: hcDataSec }]
   });
 
@@ -1278,11 +1278,11 @@ function renderQuotationCharts() {
     try { charts.qtStatus.destroy(); } catch(e){}
   }
   charts.qtStatus = Highcharts.chart('chart-qt-status', {
-    chart: { type: 'pie', backgroundColor: 'transparent', options3d: { enabled: true, alpha: 45, beta: 0 } },
+    chart: { type: 'pie', backgroundColor: 'transparent', options3d: { enabled: true, alpha: 45, beta: 0 }, margin: [0, 0, 0, 0] },
     title: { text: null },
     credits: { enabled: false },
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${this.point.y} (${this.point.percentage.toFixed(1)}%)</b>`; } },
-    plotOptions: { pie: { allowPointSelect: true, cursor: 'pointer', depth: 35, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
+    plotOptions: { pie: { size: '85%', center: ['50%', '50%'], allowPointSelect: true, cursor: 'pointer', depth: 35, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
     series: [{ name: 'Status', data: hcDataStatus }]
   });
 
@@ -1306,6 +1306,41 @@ function renderQuotationCharts() {
       const color = statusColorMap[name] || '#8e8e93';
       return `<div class="ranking-item"><div class="ranking-rank" style="color:${color} !important; border:2px solid ${color} !important; background:transparent !important; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:bold;">${i+1}</div><div class="ranking-name" style="color:${color}; font-weight:600;" title="${name}">${name}</div><div class="ranking-value" style="color:${color}; font-weight:bold;">${fmtCurrency(val)}</div></div>`;
     }).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
+  }
+
+  // Quotation Status Amount Chart
+  if(charts.qtStatusAmount) charts.qtStatusAmount.destroy();
+  const canvasStatusAmount = document.getElementById('chart-qt-status-amount');
+  if (canvasStatusAmount) {
+    charts.qtStatusAmount = new Chart(canvasStatusAmount, {
+      type: 'bar',
+      data: {
+        labels: sortedStatusList.map(x => x[0]),
+        datasets: [{
+          label: 'Amount',
+          data: sortedStatusList.map(x => x[1]),
+          backgroundColor: sortedStatusList.map(x => statusColorMap[x[0]] || '#8e8e93'),
+          borderRadius: 6, borderWidth: 0
+        }]
+      },
+      options: {
+        ...chartDefaults(),
+        indexAxis: 'y', // horizontal bar
+        plugins: {
+          legend: { display: false },
+          datalabels: {
+            display: true, color: '#fff', align: 'right', anchor: 'end',
+            font: { weight: 'bold', size: 10 },
+            formatter: (v) => fmtCurrency(v)
+          }
+        },
+        scales: {
+          x: { display: false, grid: { display: false } },
+          y: { grid: { display: false }, ticks: { color: c.text, font: { size: 11, family: 'var(--font-stack)' } } }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
   }
 }
 
