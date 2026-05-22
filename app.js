@@ -321,7 +321,7 @@ function renderSOMonthlyChart() {
 }
 
 function renderSOAmountChart(type) {
-  type = type || 'bar';
+  type = type || 'line';
   const c = getChartColors();
   const months = getLast12Months();
   const data = months.map(({m,y})=>getSOMonthData(m,y).reduce((s,r)=>s+num(r[COLS.AMOUNT]),0));
