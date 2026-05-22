@@ -18,8 +18,14 @@ const USERS = [
   { user: 'admin', pass: 'antigravity' },
   { user: 'nguyên', pass: 'Nguyen120981_@!' },
   { user: 'trinh', pass: 'ht0403' },
-  { user: 'hue', pass: 'bh1510' }
+  { user: 'hue', pass: 'bh1510' },
+  { user: 'thu', pass: 'kt1502' }
 ];
+
+// Disable Highcharts accessibility warning
+if (typeof Highcharts !== 'undefined') {
+  Highcharts.setOptions({ accessibility: { enabled: false } });
+}
 
 const COLS = {
   ID_SO:0, BUTTON:1, STATUS:2, SO_DATE:3, TYPE:4, CUSTOMER:5, ENTITY:6,
@@ -175,29 +181,33 @@ async function fetchData() {
     const loader = document.getElementById('loading-screen');
     if (loader) loader.style.display = 'flex';
 
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(CONFIG.SHEET_NAME)}?key=${CONFIG.API_KEY}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`API Error: ${res.status}`);
-    const json = await res.json();
+    // Concurrent fetches
+    const urlPO = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(CONFIG.SHEET_NAME)}?key=${CONFIG.API_KEY}`;
+    
+    const poPromise = fetch(urlPO);
+    const reportPromise = (typeof fetchReportData === 'function') ? fetchReportData() : Promise.resolve();
+    const qtPrefetchPromise = (typeof prefetchQuotationData === 'function') ? prefetchQuotationData() : Promise.resolve();
+
+    const [resPO] = await Promise.all([poPromise, reportPromise, qtPrefetchPromise]);
+
+    if (!resPO.ok) throw new Error(`API Error: ${resPO.status}`);
+    const json = await resPO.json();
     const rows = json.values || [];
     if (rows.length < 3) throw new Error('No data found');
     // Find header row (skip empty rows at top)
     let headerIdx = rows.findIndex(r => r.some(c => c && c.toString().trim() === 'ID SO'));
     if (headerIdx === -1) headerIdx = 1; // fallback: row 2
-    // Filter by Sales = Trí (data starts after header)
+    // Filter by Sales (data starts after header)
     allData = rows.slice(headerIdx + 1).filter(r => (r[COLS.SALES]||'').trim() === CONFIG.SALES_FILTER);
+    
+    // Now that allData is ready, process Quotation data
+    if (typeof fetchQuotationData === 'function') await fetchQuotationData();
+
     document.getElementById('loading-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
     document.getElementById('header-subtitle').textContent = `BD Team — ${CONFIG.SALES_FILTER}`;
     document.getElementById('last-update').innerHTML = `<span class="badge-dot"></span><span>Updated: ${new Date().toLocaleTimeString('en')}</span>`;
     
-    // Fetch Report Data
-    if (typeof fetchReportData === 'function') await fetchReportData();
-
-    // Fetch Quotation Data
-    if (typeof fetchQuotationData === 'function') await fetchQuotationData();
-
-
     toast(`Loaded ${allData.length} POs successfully`, 'success');
     renderAll();
   } catch(e) {
@@ -1037,12 +1047,29 @@ function renderReportBoard() {
 }
 
 // ===== QUOTATION DATA =====
-async function fetchQuotationData() {
+let qtJsonCache = null;
+
+async function prefetchQuotationData() {
   try {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.QT_SHEET_ID}/values:batchGet?ranges=QT26!A1:AZ&ranges=${encodeURIComponent("'QT KL'!A1:AZ")}&ranges=${encodeURIComponent("'QT SS'!A1:AZ")}&key=${CONFIG.API_KEY}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`QT API Error: ${res.status}`);
-    const json = await res.json();
+    qtJsonCache = await res.json();
+  } catch(e) {
+    console.error('Prefetch QT failed', e);
+  }
+}
+
+async function fetchQuotationData() {
+  try {
+    let json = qtJsonCache;
+    if (!json) {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.QT_SHEET_ID}/values:batchGet?ranges=QT26!A1:AZ&ranges=${encodeURIComponent("'QT KL'!A1:AZ")}&ranges=${encodeURIComponent("'QT SS'!A1:AZ")}&key=${CONFIG.API_KEY}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`QT API Error: ${res.status}`);
+      json = await res.json();
+    }
+    qtJsonCache = null; // Clear cache
     allQuotations = [];
     
     let masterColMap = null;
