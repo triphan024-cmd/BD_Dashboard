@@ -1257,7 +1257,7 @@ function renderQuotationCharts() {
     title: { text: null },
     credits: { enabled: false },
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${fmtCurrency(this.point.y)} (${this.point.percentage.toFixed(1)}%)</b>`; } },
-    plotOptions: { pie: { size: '85%', center: ['50%', '50%'], allowPointSelect: true, cursor: 'pointer', depth: 35, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
+    plotOptions: { pie: { size: '70%', center: ['50%', '50%'], allowPointSelect: true, cursor: 'pointer', depth: 35, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
     series: [{ name: isGeneral ? 'Customer' : 'Brand', data: hcDataSec }]
   });
 
@@ -1265,15 +1265,14 @@ function renderQuotationCharts() {
   const mapStatus = {};
   md.forEach(q => {
     let st = q.status || 'N/A';
-    if (st.includes('Quoted')) st = 'Quoted';
-    else if (st.includes('No Quote')) st = 'No Quote';
-    else if (st.includes('PO') || st.includes('Win')) st = 'Won (PO)';
     mapStatus[st] = (mapStatus[st]||0) + 1; // Count by number of quotations
   });
   
-  const hcDataStatus = Object.entries(mapStatus).map((x, i) => ({
-    name: x[0], y: x[1], color: hcColors[i % hcColors.length]
+  const sortedStatusKeys = Object.keys(mapStatus).sort((a,b) => a.localeCompare(b));
+  const hcDataStatus = sortedStatusKeys.map((k, i) => ({
+    name: k, y: mapStatus[k], color: hcColors[i % hcColors.length]
   }));
+
   if(charts.qtStatus && typeof charts.qtStatus.destroy === 'function') {
     try { charts.qtStatus.destroy(); } catch(e){}
   }
@@ -1282,7 +1281,7 @@ function renderQuotationCharts() {
     title: { text: null },
     credits: { enabled: false },
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${this.point.y} (${this.point.percentage.toFixed(1)}%)</b>`; } },
-    plotOptions: { pie: { size: '85%', center: ['50%', '50%'], allowPointSelect: true, cursor: 'pointer', depth: 35, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
+    plotOptions: { pie: { size: '70%', center: ['50%', '50%'], allowPointSelect: true, cursor: 'pointer', depth: 35, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
     series: [{ name: 'Status', data: hcDataStatus }]
   });
 
@@ -1290,21 +1289,20 @@ function renderQuotationCharts() {
   const mapStatusAmount = {};
   md.forEach(q => {
     let st = q.status || 'N/A';
-    if (st.includes('Quoted')) st = 'Quoted';
-    else if (st.includes('No Quote')) st = 'No Quote';
-    else if (st.includes('PO') || st.includes('Win')) st = 'Won (PO)';
     mapStatusAmount[st] = (mapStatusAmount[st] || 0) + q.amount;
   });
 
   const statusColorMap = {};
   hcDataStatus.forEach(x => { statusColorMap[x.name] = x.color; });
 
-  const sortedStatusList = Object.entries(mapStatusAmount).sort((a,b) => b[1] - a[1]);
+  const sortedStatusList = sortedStatusKeys.map(k => [k, mapStatusAmount[k] || 0]);
   const statusListEl = document.getElementById('qt-status-list');
   if(statusListEl) {
     statusListEl.innerHTML = sortedStatusList.map(([name,val],i) => {
       const color = statusColorMap[name] || '#8e8e93';
-      return `<div class="ranking-item"><div class="ranking-rank" style="color:${color} !important; border:2px solid ${color} !important; background:transparent !important; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:bold;">${i+1}</div><div class="ranking-name" style="color:${color}; font-weight:600;" title="${name}">${name}</div><div class="ranking-value" style="color:${color}; font-weight:bold;">${fmtCurrency(val)}</div></div>`;
+      const prefixMatch = name.match(/^\d+/);
+      const displayRank = prefixMatch ? prefixMatch[0] : (i+1);
+      return `<div class="ranking-item"><div class="ranking-rank" style="color:${color} !important; border:2px solid ${color} !important; background:transparent !important; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:bold;">${displayRank}</div><div class="ranking-name" style="color:${color}; font-weight:600;" title="${name}">${name}</div><div class="ranking-value" style="color:${color}; font-weight:bold;">${fmtCurrency(val)}</div></div>`;
     }).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
   }
 
