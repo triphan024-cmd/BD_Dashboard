@@ -107,8 +107,12 @@ function setupUI() {
       document.getElementById('page-title').textContent = el.querySelector('.nav-label').textContent;
       document.getElementById('sidebar').classList.remove('mobile-open');
       const qtTabsHeader = document.getElementById('qt-tabs-header');
+      const qtAmountSummary = document.getElementById('qt-amount-summary');
       if (qtTabsHeader) {
         qtTabsHeader.style.display = (currentView === 'quotation') ? 'flex' : 'none';
+      }
+      if (qtAmountSummary) {
+        qtAmountSummary.style.display = (currentView === 'quotation') ? 'flex' : 'none';
       }
     };
   });
@@ -167,8 +171,12 @@ function setupUI() {
   });
 
   const qtTabsHeader = document.getElementById('qt-tabs-header');
+  const qtAmountSummary = document.getElementById('qt-amount-summary');
   if (qtTabsHeader) {
     qtTabsHeader.style.display = (currentView === 'quotation') ? 'flex' : 'none';
+  }
+  if (qtAmountSummary) {
+    qtAmountSummary.style.display = (currentView === 'quotation') ? 'flex' : 'none';
   }
 
   updateMonthDisplay();
@@ -1207,6 +1215,18 @@ function getQTMonthData(m, y) {
 }
 
 function renderQuotation() {
+  const sources = [
+    { id: 'QT26', elId: 'amt-qt26' },
+    { id: 'QT KL', elId: 'amt-qtkl' },
+    { id: 'QT SS', elId: 'amt-qtss' }
+  ];
+  sources.forEach(src => {
+    const data = allQuotations.filter(q => q.qMonth === currentMonth && q.qYear === currentYear && q.source === src.id);
+    const sum = data.reduce((s, q) => s + q.amount, 0);
+    const el = document.getElementById(src.elId);
+    if(el) el.textContent = shortFmt(sum);
+  });
+
   renderQuotationKPIs();
   renderQuotationCharts();
   renderQuotationTable();
@@ -1221,9 +1241,6 @@ function renderQuotationKPIs() {
   const winRate = count > 0 ? ((wonCount / count) * 100).toFixed(1) : 0;
   
   const pendingAmount = md.filter(q => q.status.toLowerCase().includes('quoted') || q.status.toLowerCase().includes('pending')).reduce((s, q) => s + q.amount, 0);
-
-  const headerAmountEl = document.getElementById('header-qt-amount');
-  if (headerAmountEl) headerAmountEl.textContent = fmtCurrency(amount);
 
   const elCount = document.getElementById('kpi-qt-count');
   if(elCount) elCount.textContent = fmt(count);
@@ -1315,6 +1332,8 @@ function renderQuotationCharts() {
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${fmtCurrency(this.point.y)} (${this.point.percentage.toFixed(1)}%)</b>`; } },
     plotOptions: { 
       pie: { 
+        size: '60%',
+        center: ['50%', '40%'],
         allowPointSelect: true, 
         cursor: 'pointer', 
         depth: 35, 
@@ -1360,6 +1379,8 @@ function renderQuotationCharts() {
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${this.point.y} (${this.point.percentage.toFixed(1)}%)</b>`; } },
     plotOptions: { 
       pie: { 
+        size: '60%',
+        center: ['50%', '40%'],
         allowPointSelect: true, 
         cursor: 'pointer', 
         depth: 35, 

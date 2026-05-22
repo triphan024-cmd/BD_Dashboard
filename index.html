@@ -104,7 +104,13 @@
                         <button class="qt-tab-btn active" data-source="QT26">General</button>
                         <button class="qt-tab-btn" data-source="QT KL">Kolon</button>
                         <button class="qt-tab-btn" data-source="QT SS">Samsung</button>
-                        <div style="margin-left: 15px; padding: 6px 14px; background: rgba(0, 122, 255, 0.1); color: var(--accent-primary); font-weight: 700; border-radius: 20px; font-size: 0.95rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" id="header-qt-amount">0</div>
+                    </div>
+                    <div id="qt-amount-summary" style="display:none; align-items:center; gap: 15px; margin-left: 15px; font-weight: 600; font-size: 0.9rem; background: var(--bg-glass); padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border-glass); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <span style="color: var(--text-secondary);">General: <span id="amt-qt26" style="color: var(--accent-primary);">0</span></span>
+                        <span style="color: var(--border-glass);">|</span>
+                        <span style="color: var(--text-secondary);">Kolon: <span id="amt-qtkl" style="color: var(--accent-primary);">0</span></span>
+                        <span style="color: var(--border-glass);">|</span>
+                        <span style="color: var(--text-secondary);">Samsung: <span id="amt-qtss" style="color: var(--accent-primary);">0</span></span>
                     </div>
                 </div>
                 <div class="header-right">
@@ -509,6 +515,6 @@
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
     <!-- Custom Scripts -->
-    <script src="app.js?v=54"></script>
+    <script src="app.js?v=55"></script>
 </body>
 </html>
