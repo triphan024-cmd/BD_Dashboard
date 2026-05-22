@@ -55,7 +55,11 @@
                 </button>
             </div>
             <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" data-view="postatus">
+                <a href="#" class="nav-item active" data-view="quotation">
+                    <span class="nav-icon">📄</span>
+                    <span class="nav-label">Quotation</span>
+                </a>
+                <a href="#" class="nav-item" data-view="postatus">
                     <span class="nav-icon">📦</span>
                     <span class="nav-label">PO Received</span>
                 </a>
@@ -70,10 +74,6 @@
                 <a href="#" class="nav-item" data-view="analytics">
                     <span class="nav-icon">📈</span>
                     <span class="nav-label">Analytics</span>
-                </a>
-                <a href="#" class="nav-item" data-view="quotation">
-                    <span class="nav-icon">📄</span>
-                    <span class="nav-label">Quotation</span>
                 </a>
                 <a href="#" class="nav-item" data-view="report">
                     <span class="nav-icon">📊</span>
@@ -376,16 +376,23 @@
                         </div>
                     </div>
 
-                    <div class="charts-row" style="margin-bottom: 20px;">
-                        <div class="chart-card glass-card" style="flex:1">
+                    <div class="charts-grid-50" style="margin-bottom: 20px;">
+                        <div class="chart-card glass-card">
                             <div class="chart-header">
                                 <h3>Quotation Value by Month</h3>
                                 <div class="chart-actions">
-                                    <button class="chart-btn-qt active" data-chart-type="bar">Bar</button>
-                                    <button class="chart-btn-qt" data-chart-type="line">Line</button>
+                                    <button class="chart-btn-qt" data-chart-type="bar">Bar</button>
+                                    <button class="chart-btn-qt active" data-chart-type="line">Line</button>
                                 </div>
                             </div>
                             <div class="chart-body"><canvas id="chart-qt-monthly"></canvas></div>
+                        </div>
+                        <div class="chart-card glass-card">
+                            <div class="chart-header">
+                                <h3>Quotation Item by Month</h3>
+                                <span class="chart-sub">Quotation Count</span>
+                            </div>
+                            <div class="chart-body"><canvas id="chart-qt-item-monthly"></canvas></div>
                         </div>
                     </div>
                     
@@ -395,14 +402,14 @@
                                 <h3 id="qt-secondary-title">Quotations by Customer</h3>
                                 <span class="chart-sub">Distribution</span>
                             </div>
-                            <div class="chart-body"><canvas id="chart-qt-secondary"></canvas></div>
+                            <div class="chart-body"><div id="chart-qt-secondary" style="height:100%; min-height:300px;"></div></div>
                         </div>
                         <div class="chart-card glass-card">
                             <div class="chart-header">
                                 <h3>Quotation Status</h3>
                                 <span class="chart-sub">Distribution</span>
                             </div>
-                            <div class="chart-body"><canvas id="chart-qt-status"></canvas></div>
+                            <div class="chart-body"><div id="chart-qt-status" style="height:100%; min-height:300px;"></div></div>
                         </div>
                     </div>
 
@@ -466,6 +473,6 @@
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=43"></script>
+    <script src="app.js?v=44"></script>
 </body>
 </html>

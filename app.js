@@ -35,7 +35,7 @@ const COLS = {
 
 const DISPLAY_COLS = ['ID_SO','STATUS','SO_DATE','CUSTOMER','PO_NO','NAME','QTY','AMOUNT','REVENUE','PROFIT','MARGIN','IV_MONTH','IV_YEAR','SALES_SITUATION'];
 
-let allData = [], allQuotations = [], charts = {}, currentMonth, currentYear, currentView = 'overview', currentQtSource = 'QT26';
+let allData = [], allQuotations = [], charts = {}, currentMonth, currentYear, currentView = 'quotation', currentQtSource = 'QT26';
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -1189,10 +1189,11 @@ function renderQuotationKPIs() {
 
 function renderQuotationCharts() {
   const btn = document.querySelector('.chart-btn-qt.active');
-  const type = btn ? btn.dataset.chartType : 'bar';
+  const type = btn ? btn.dataset.chartType : 'line';
   const c = getChartColors();
   const months = getLast12Months();
   const data = months.map(({m,y}) => getQTMonthData(m,y).reduce((s,q) => s + q.amount, 0));
+  const dataItems = months.map(({m,y}) => getQTMonthData(m,y).length);
   
   if(charts.qtMonthly) charts.qtMonthly.destroy();
   const canvasMonthly = document.getElementById('chart-qt-monthly');
@@ -1206,6 +1207,22 @@ function renderQuotationCharts() {
           backgroundColor: type === 'bar' ? c.cyanA : 'transparent', 
           fill: type === 'line', tension: 0.4, pointRadius: 4, pointBackgroundColor: c.cyan,
           borderWidth: 2, borderRadius: type === 'bar' ? 6 : 0
+        }]
+      }, options: chartDefaults(), plugins: [ChartDataLabels]
+    });
+  }
+
+  if(charts.qtItemMonthly) charts.qtItemMonthly.destroy();
+  const canvasItemMonthly = document.getElementById('chart-qt-item-monthly');
+  if (canvasItemMonthly) {
+    charts.qtItemMonthly = new Chart(canvasItemMonthly, {
+      type: 'bar', data: {
+        labels: months.map(x=>x.label),
+        datasets: [{
+          label: 'Quotation Count', data: dataItems,
+          borderColor: c.purple, 
+          backgroundColor: c.purpleA, 
+          borderWidth: 2, borderRadius: 6
         }]
       }, options: chartDefaults(), plugins: [ChartDataLabels]
     });
@@ -1227,31 +1244,22 @@ function renderQuotationCharts() {
   });
   const sortedSecondary = Object.entries(secondaryMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
   
-  if(charts.qtSecondary) charts.qtSecondary.destroy();
-  const canvasSecondary = document.getElementById('chart-qt-secondary');
-  if (canvasSecondary) {
-    charts.qtSecondary = new Chart(canvasSecondary, {
-      type: 'pie',
-      data: {
-        labels: sortedSecondary.map(x=>x[0]),
-        datasets: [{ data: sortedSecondary.map(x=>x[1]), backgroundColor: Object.values(c).slice(0,8), borderWidth: 0, hoverOffset: 8 }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { 
-          legend: { display: true, position: 'right', labels: { color: c.text, font: { size: 11, family: 'var(--font-stack)' } } },
-          datalabels: {
-            display: true, color: '#fff', font: { weight: 'bold', size: 10 },
-            formatter: (v, ctx) => {
-              const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
-              return sum > 0 ? Math.round((v/sum)*100)+'%' : '';
-            }
-          }
-        }
-      },
-      plugins: [ChartDataLabels, modernChartPlugin]
-    });
+  const hcColors = ['#007aff', '#34c759', '#ff9f0a', '#ff3b30', '#5ac8fa', '#af52de', '#ffcc00', '#ff2d55'];
+
+  const hcDataSec = sortedSecondary.map((x, i) => ({
+    name: x[0], y: x[1], color: hcColors[i % hcColors.length]
+  }));
+  if(charts.qtSecondary && typeof charts.qtSecondary.destroy === 'function') {
+    try { charts.qtSecondary.destroy(); } catch(e){}
   }
+  charts.qtSecondary = Highcharts.chart('chart-qt-secondary', {
+    chart: { type: 'pie', backgroundColor: 'transparent', options3d: { enabled: true, alpha: 45, beta: 0 } },
+    title: { text: null },
+    credits: { enabled: false },
+    tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${fmtCurrency(this.point.y)} (${this.point.percentage.toFixed(1)}%)</b>`; } },
+    plotOptions: { pie: { allowPointSelect: true, cursor: 'pointer', depth: 35, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
+    series: [{ name: isGeneral ? 'Customer' : 'Brand', data: hcDataSec }]
+  });
 
   // Status Distribution Chart
   const mapStatus = {};
@@ -1263,35 +1271,20 @@ function renderQuotationCharts() {
     mapStatus[st] = (mapStatus[st]||0) + 1; // Count by number of quotations
   });
   
-  if(charts.qtStatus) charts.qtStatus.destroy();
-  const canvasStatus = document.getElementById('chart-qt-status');
-  if (canvasStatus) {
-    charts.qtStatus = new Chart(canvasStatus, {
-      type: 'doughnut',
-      data: {
-        labels: Object.keys(mapStatus),
-        datasets: [{ 
-          data: Object.values(mapStatus), 
-          backgroundColor: [c.amber, c.rose, c.green, c.primary, c.cyan, c.purple], 
-          borderWidth: 0, hoverOffset: 6 
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false, cutout: '65%',
-        plugins: { 
-          legend: { display: true, position: 'right', labels: { color: c.text, font: { size: 11 } } },
-          datalabels: {
-            display: true, color: '#fff', font: { weight: 'bold', size: 10 },
-            formatter: (v, ctx) => {
-              const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
-              return sum > 0 ? Math.round((v/sum)*100)+'%' : '';
-            }
-          }
-        }
-      },
-      plugins: [ChartDataLabels, modernChartPlugin]
-    });
+  const hcDataStatus = Object.entries(mapStatus).map((x, i) => ({
+    name: x[0], y: x[1], color: hcColors[i % hcColors.length]
+  }));
+  if(charts.qtStatus && typeof charts.qtStatus.destroy === 'function') {
+    try { charts.qtStatus.destroy(); } catch(e){}
   }
+  charts.qtStatus = Highcharts.chart('chart-qt-status', {
+    chart: { type: 'pie', backgroundColor: 'transparent', options3d: { enabled: true, alpha: 45, beta: 0 } },
+    title: { text: null },
+    credits: { enabled: false },
+    tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${this.point.y} (${this.point.percentage.toFixed(1)}%)</b>`; } },
+    plotOptions: { pie: { allowPointSelect: true, cursor: 'pointer', depth: 35, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
+    series: [{ name: 'Status', data: hcDataStatus }]
+  });
 }
 
 function renderQuotationTable() {
