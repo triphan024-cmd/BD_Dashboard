@@ -8,7 +8,8 @@ const CONFIG = {
   API_KEY: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.API_KEY) || _k,
   ROWS_PER_PAGE: 20,
   REPORT_SHEET_ID: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.REPORT_SHEET_ID) || '1UIqT7rWcfkaAJHZDR5Gzsb4LAcyvh2voVjwHDl7Be7U',
-  REPORT_SHEET_NAME: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.REPORT_SHEET_NAME) || 'Report'
+  REPORT_SHEET_NAME: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.REPORT_SHEET_NAME) || 'Report',
+  QT_SHEET_ID: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.QT_SHEET_ID) || '1TTB57jpVnERMZPd17kIcr8G-3eG_Yr43W95G0710Uy4'
 };
 
 // Simple auth (hash-based for client-side security)
@@ -34,7 +35,7 @@ const COLS = {
 
 const DISPLAY_COLS = ['ID_SO','STATUS','SO_DATE','CUSTOMER','PO_NO','NAME','QTY','AMOUNT','REVENUE','PROFIT','MARGIN','IV_MONTH','IV_YEAR','SALES_SITUATION'];
 
-let allData = [], charts = {}, currentMonth, currentYear, currentView = 'overview';
+let allData = [], allQuotations = [], charts = {}, currentMonth, currentYear, currentView = 'overview', currentQtSource = 'QT26';
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -106,11 +107,28 @@ function setupUI() {
   // RBAC
   const loggedUser = (sessionStorage.getItem('bd_logged_in') || '').toLowerCase();
   
+  // Setup Quotation Sub-Tabs
+  document.querySelectorAll('.qt-tab-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      document.querySelectorAll('.qt-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentQtSource = btn.dataset.source;
+      if (typeof renderQuotation === 'function') renderQuotation();
+    };
+  });
+
   // Details & Analytics
   if (loggedUser === 'nguyen' || loggedUser === 'nguyên') {
     document.querySelectorAll('[data-view="details"], [data-view="analytics"]').forEach(el => el.style.display = 'none');
   } else {
     document.querySelectorAll('[data-view="details"], [data-view="analytics"]').forEach(el => el.style.display = '');
+  }
+
+  // Quotation
+  if (['tri', 'trinh', 'hue', 'admin'].includes(loggedUser)) {
+    document.querySelectorAll('[data-view="quotation"]').forEach(el => el.style.display = '');
+  } else {
+    document.querySelectorAll('[data-view="quotation"]').forEach(el => el.style.display = 'none');
   }
 
   // Report
@@ -133,6 +151,9 @@ function setupUI() {
   });
   document.querySelectorAll('.chart-btn-so').forEach(b => {
     b.onclick = () => { document.querySelectorAll('.chart-btn-so').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderSOAmountChart(b.dataset.chartType); };
+  });
+  document.querySelectorAll('.chart-btn-qt').forEach(b => {
+    b.onclick = () => { document.querySelectorAll('.chart-btn-qt').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderQuotationCharts(); };
   });
 
   updateMonthDisplay();
@@ -169,6 +190,9 @@ async function fetchData() {
     
     // Fetch Report Data
     if (typeof fetchReportData === 'function') await fetchReportData();
+
+    // Fetch Quotation Data
+    if (typeof fetchQuotationData === 'function') await fetchQuotationData();
 
 
     toast(`Loaded ${allData.length} POs successfully`, 'success');
@@ -257,6 +281,9 @@ function renderAll() {
   renderDetailTable();
   renderAnalytics();
   if (typeof renderReportBoard === 'function') renderReportBoard();
+  if (typeof renderQuotationKPIs === 'function') renderQuotationKPIs();
+  if (typeof renderQuotationCharts === 'function') renderQuotationCharts();
+  if (typeof renderQuotationTable === 'function') renderQuotationTable();
 }
 
 // ===== SECTION 1: PO NHẬN ĐƯỢC (SO Date) =====
@@ -1004,4 +1031,273 @@ function renderReportBoard() {
   }
   
   container.innerHTML = html;
+}
+
+// ===== QUOTATION DATA =====
+async function fetchQuotationData() {
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.QT_SHEET_ID}/values:batchGet?ranges=QT26!A1:AZ&ranges=${encodeURIComponent("'QT KL'!A1:AZ")}&ranges=${encodeURIComponent("'QT SS'!A1:AZ")}&key=${CONFIG.API_KEY}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`QT API Error: ${res.status}`);
+    const json = await res.json();
+    allQuotations = [];
+    
+    let masterColMap = null;
+    
+    if (json.valueRanges) {
+      json.valueRanges.forEach(vr => {
+        const rows = vr.values || [];
+        if (rows.length < 1) return;
+        
+        let headerRow = rows.find(r => r.some(c => c === 'Customer' || c === 'Amount' || c === 'Status'));
+        let colMap = {};
+        let dataStartIndex = 0;
+        
+        if (headerRow) {
+          headerRow.forEach((c, i) => { if (c) colMap[String(c).trim()] = i; });
+          masterColMap = colMap;
+          dataStartIndex = rows.indexOf(headerRow) + 1;
+        } else {
+          if (masterColMap) {
+            colMap = masterColMap;
+            dataStartIndex = 0;
+          } else {
+            return;
+          }
+        }
+        
+        let sheetSource = 'QT26';
+        if (vr.range) {
+          const rText = vr.range.toUpperCase();
+          if (rText.includes('KL')) sheetSource = 'QT KL';
+          else if (rText.includes('SS')) sheetSource = 'QT SS';
+        }
+
+        // Special handling for QT SS missing Status header
+        if (sheetSource === 'QT SS' && !colMap['Status']) {
+          colMap['Status'] = 2; // Hardcode index 2
+        }
+
+        for (let i = dataStartIndex; i < rows.length; i++) {
+          const r = rows[i];
+          if (!r || r.length === 0) continue;
+          
+          let id, status, customer, amountStr, prDate, qDate, qMonth, qYear, brand, itemName, sales;
+
+          if (sheetSource === 'QT SS') {
+            id = r[0];
+            sales = r[1] || '';
+            status = r[2] || '';
+            customer = r[4] || 'Samsung';
+            prDate = r[7] || '';
+            itemName = r[9] || r[6] || '';
+            brand = r[12] || '';
+            amountStr = r[20] || r[15] || '0';
+            qDate = r[44] || '';
+            qMonth = num(r[45]);
+            qYear = num(r[46]);
+          } else {
+            id = r[colMap['ID']];
+            status = r[colMap['Status']] || '';
+            customer = r[colMap['Customer']] || 'N/A';
+            amountStr = r[colMap['Amount']] || '0';
+            prDate = r[colMap['PR Date']] || '';
+            qDate = r[colMap['Q Date']] || '';
+            qMonth = num(r[colMap['Q Month']]);
+            qYear = num(r[colMap['Q Year']]);
+            brand = r[colMap['Brand']] || '';
+            itemName = r[colMap['Name']] || r[colMap['Name EN']] || '';
+            sales = r[colMap['Sales']] || '';
+          }
+          
+          if (!id) continue;
+          const amount = num(amountStr);
+          
+          // Fallback parsing if Q Month or Q Year is missing
+          if (!qMonth || !qYear) {
+            if (qDate) {
+              const dObj = new Date(qDate);
+              if (!isNaN(dObj.getTime())) {
+                qMonth = dObj.getMonth() + 1;
+                qYear = dObj.getFullYear();
+              }
+            }
+            if (!qMonth || !qYear) {
+              const parsed = parseSODate(prDate.split(' ')[0]);
+              if (parsed) {
+                qMonth = parsed.month;
+                qYear = parsed.year;
+              }
+            }
+          }
+          
+          if (CONFIG.SALES_FILTER !== 'All' && sales.trim() !== CONFIG.SALES_FILTER) continue;
+          
+          const isWon = allData.some(poRow => String(poRow[COLS.HISTORY] || '').includes(id));
+          if (isWon) {
+            status = '7. PO';
+          }
+          
+          allQuotations.push({ id, status, customer, amount, prDate, qDate, qMonth, qYear, brand, itemName, source: sheetSource });
+        }
+      });
+    }
+  } catch (e) {
+    console.error('Error fetching Quotation data:', e);
+  }
+}
+
+function getQTMonthData(m, y) {
+  m = m || currentMonth; y = y || currentYear;
+  return allQuotations.filter(q => q.qMonth === m && q.qYear === y && q.source === currentQtSource);
+}
+
+function renderQuotation() {
+  renderQuotationKPIs();
+  renderQuotationCharts();
+  renderQuotationTable();
+}
+
+function renderQuotationKPIs() {
+  const md = getQTMonthData();
+  const count = md.length;
+  const amount = md.reduce((s, q) => s + q.amount, 0);
+  
+  const wonCount = md.filter(q => q.status === '7. PO' || q.status.toLowerCase().includes('win') || q.status.toLowerCase().includes('po')).length;
+  const winRate = count > 0 ? ((wonCount / count) * 100).toFixed(1) : 0;
+  
+  const pendingAmount = md.filter(q => q.status.toLowerCase().includes('quoted') || q.status.toLowerCase().includes('pending')).reduce((s, q) => s + q.amount, 0);
+
+  const elCount = document.getElementById('kpi-qt-count');
+  if(elCount) elCount.textContent = fmt(count);
+  const elAmt = document.getElementById('kpi-qt-amount');
+  if(elAmt) elAmt.textContent = fmtCurrency(amount);
+  const elRate = document.getElementById('kpi-qt-winrate');
+  if(elRate) elRate.textContent = winRate + '%';
+  const elPending = document.getElementById('kpi-qt-pending');
+  if(elPending) elPending.textContent = fmtCurrency(pendingAmount);
+}
+
+function renderQuotationCharts() {
+  const btn = document.querySelector('.chart-btn-qt.active');
+  const type = btn ? btn.dataset.chartType : 'bar';
+  const c = getChartColors();
+  const months = getLast12Months();
+  const data = months.map(({m,y}) => getQTMonthData(m,y).reduce((s,q) => s + q.amount, 0));
+  
+  if(charts.qtMonthly) charts.qtMonthly.destroy();
+  const canvasMonthly = document.getElementById('chart-qt-monthly');
+  if (canvasMonthly) {
+    charts.qtMonthly = new Chart(canvasMonthly, {
+      type, data: {
+        labels: months.map(x=>x.label),
+        datasets: [{
+          label: 'Quoted Value', data,
+          borderColor: c.cyan, 
+          backgroundColor: type === 'bar' ? c.cyanA : 'transparent', 
+          fill: type === 'line', tension: 0.4, pointRadius: 4, pointBackgroundColor: c.cyan,
+          borderWidth: 2, borderRadius: type === 'bar' ? 6 : 0
+        }]
+      }, options: chartDefaults(), plugins: [ChartDataLabels]
+    });
+  }
+
+  const md = getQTMonthData();
+  
+  // Secondary Chart: Customer for QT26, Brand for QT KL/QT SS
+  let secondaryMap = {};
+  let isGeneral = (currentQtSource === 'QT26');
+  
+  let stLabel = document.getElementById('qt-secondary-title');
+  if (stLabel) stLabel.textContent = isGeneral ? 'Quotations by Customer' : 'Quotations by Brand';
+  
+  md.forEach(q => {
+    let key = isGeneral ? q.customer : q.brand;
+    if (!key) key = 'N/A';
+    secondaryMap[key] = (secondaryMap[key]||0) + q.amount;
+  });
+  const sortedSecondary = Object.entries(secondaryMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  
+  if(charts.qtSecondary) charts.qtSecondary.destroy();
+  const canvasSecondary = document.getElementById('chart-qt-secondary');
+  if (canvasSecondary) {
+    charts.qtSecondary = new Chart(canvasSecondary, {
+      type: 'pie',
+      data: {
+        labels: sortedSecondary.map(x=>x[0]),
+        datasets: [{ data: sortedSecondary.map(x=>x[1]), backgroundColor: Object.values(c).slice(0,8), borderWidth: 0, hoverOffset: 8 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { 
+          legend: { display: true, position: 'right', labels: { color: c.text, font: { size: 11, family: 'var(--font-stack)' } } },
+          datalabels: {
+            display: true, color: '#fff', font: { weight: 'bold', size: 10 },
+            formatter: (v, ctx) => {
+              const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+              return sum > 0 ? Math.round((v/sum)*100)+'%' : '';
+            }
+          }
+        }
+      },
+      plugins: [ChartDataLabels, modernChartPlugin]
+    });
+  }
+
+  // Status Distribution Chart
+  const mapStatus = {};
+  md.forEach(q => {
+    let st = q.status || 'N/A';
+    if (st.includes('Quoted')) st = 'Quoted';
+    else if (st.includes('No Quote')) st = 'No Quote';
+    else if (st.includes('PO') || st.includes('Win')) st = 'Won (PO)';
+    mapStatus[st] = (mapStatus[st]||0) + 1; // Count by number of quotations
+  });
+  
+  if(charts.qtStatus) charts.qtStatus.destroy();
+  const canvasStatus = document.getElementById('chart-qt-status');
+  if (canvasStatus) {
+    charts.qtStatus = new Chart(canvasStatus, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(mapStatus),
+        datasets: [{ 
+          data: Object.values(mapStatus), 
+          backgroundColor: [c.amber, c.rose, c.green, c.primary, c.cyan, c.purple], 
+          borderWidth: 0, hoverOffset: 6 
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '65%',
+        plugins: { 
+          legend: { display: true, position: 'right', labels: { color: c.text, font: { size: 11 } } },
+          datalabels: {
+            display: true, color: '#fff', font: { weight: 'bold', size: 10 },
+            formatter: (v, ctx) => {
+              const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+              return sum > 0 ? Math.round((v/sum)*100)+'%' : '';
+            }
+          }
+        }
+      },
+      plugins: [ChartDataLabels, modernChartPlugin]
+    });
+  }
+}
+
+function renderQuotationTable() {
+  const md = getQTMonthData().sort((a,b) => b.amount - a.amount).slice(0, 50);
+  const tbody = document.getElementById('qt-recent-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = md.map(q => `
+    <tr>
+      <td style="white-space:nowrap; color:var(--text-secondary)">${q.qDate || q.prDate}</td>
+      <td style="font-weight:600">${q.id}</td>
+      <td style="font-weight:600">${q.customer}</td>
+      <td style="font-weight:600; color:var(--text-secondary)">${q.brand}</td>
+      <td style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${q.itemName}">${q.itemName}</td>
+      <td style="font-weight:bold; color:var(--text-primary)">${fmt(q.amount)}</td>
+      <td><span class="status-badge ${getStatusClass(q.status)}">${q.status}</span></td>
+    </tr>
+  `).join('');
 }

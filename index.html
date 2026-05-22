@@ -71,7 +71,10 @@
                     <span class="nav-icon">📈</span>
                     <span class="nav-label">Analytics</span>
                 </a>
-
+                <a href="#" class="nav-item" data-view="quotation">
+                    <span class="nav-icon">📄</span>
+                    <span class="nav-label">Quotation</span>
+                </a>
                 <a href="#" class="nav-item" data-view="report">
                     <span class="nav-icon">📊</span>
                     <span class="nav-label">Report</span>
@@ -346,7 +349,87 @@
                     </div>
                 </section>
 
+                <!-- View: Quotation -->
+                <section id="view-quotation" class="view-section">
+                    <div class="qt-tabs-container">
+                        <button class="qt-tab-btn active" data-source="QT26">General (QT26)</button>
+                        <button class="qt-tab-btn" data-source="QT KL">Kolon (QT KL)</button>
+                        <button class="qt-tab-btn" data-source="QT SS">Samsung (QT SS)</button>
+                    </div>
 
+                    <div class="kpi-grid">
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-blue"><span class="kpi-icon">📄</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Total Quotations</span><span class="kpi-value" id="kpi-qt-count">—</span></div>
+                        </div>
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">💰</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Quoted Value</span><span class="kpi-value" id="kpi-qt-amount">—</span></div>
+                        </div>
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-amber"><span class="kpi-icon">🏆</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Win Rate</span><span class="kpi-value" id="kpi-qt-winrate">—</span></div>
+                        </div>
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-rose"><span class="kpi-icon">⏳</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Pending Value</span><span class="kpi-value" id="kpi-qt-pending">—</span></div>
+                        </div>
+                    </div>
+
+                    <div class="charts-row" style="margin-bottom: 20px;">
+                        <div class="chart-card glass-card" style="flex:1">
+                            <div class="chart-header">
+                                <h3>Quotation Value by Month</h3>
+                                <div class="chart-actions">
+                                    <button class="chart-btn-qt active" data-chart-type="bar">Bar</button>
+                                    <button class="chart-btn-qt" data-chart-type="line">Line</button>
+                                </div>
+                            </div>
+                            <div class="chart-body"><canvas id="chart-qt-monthly"></canvas></div>
+                        </div>
+                    </div>
+                    
+                    <div class="charts-row">
+                        <div class="chart-card glass-card">
+                            <div class="chart-header">
+                                <h3 id="qt-secondary-title">Quotations by Customer</h3>
+                                <span class="chart-sub">Distribution</span>
+                            </div>
+                            <div class="chart-body"><canvas id="chart-qt-secondary"></canvas></div>
+                        </div>
+                        <div class="chart-card glass-card">
+                            <div class="chart-header">
+                                <h3>Quotation Status</h3>
+                                <span class="chart-sub">Distribution</span>
+                            </div>
+                            <div class="chart-body"><canvas id="chart-qt-status"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="card glass-card table-card" style="margin-top:20px;">
+                        <div class="table-header">
+                            <h2>Recent Quotations</h2>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Quotation ID</th>
+                                        <th>Customer</th>
+                                        <th>Brand</th>
+                                        <th>Item Name</th>
+                                        <th style="text-align:right">Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="qt-recent-tbody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
 
                 <!-- View: Analytics -->
                 <section id="view-analytics" class="view-section">
@@ -383,6 +466,6 @@
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=40"></script>
+    <script src="app.js?v=41"></script>
 </body>
 </html>
