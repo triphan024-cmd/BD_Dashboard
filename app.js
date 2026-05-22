@@ -34,7 +34,7 @@ const COLS = {
 
 const DISPLAY_COLS = ['ID_SO','STATUS','SO_DATE','CUSTOMER','PO_NO','NAME','QTY','AMOUNT','REVENUE','PROFIT','MARGIN','IV_MONTH','IV_YEAR','SALES_SITUATION'];
 
-let allData = [], charts = {}, currentMonth, currentYear, currentView = 'overview';
+let allData = [], allQuotations = [], charts = {}, currentMonth, currentYear, currentView = 'overview';
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -103,11 +103,27 @@ function setupUI() {
   });
   
   // RBAC
-  const loggedUser = sessionStorage.getItem('bd_logged_in');
+  const loggedUser = (sessionStorage.getItem('bd_logged_in') || '').toLowerCase();
+  
+  // Details & Analytics
   if (loggedUser === 'nguyen' || loggedUser === 'nguyên') {
     document.querySelectorAll('[data-view="details"], [data-view="analytics"]').forEach(el => el.style.display = 'none');
   } else {
     document.querySelectorAll('[data-view="details"], [data-view="analytics"]').forEach(el => el.style.display = '');
+  }
+
+  // Quotation
+  if (['tri', 'trinh', 'hue', 'admin'].includes(loggedUser)) {
+    document.querySelectorAll('[data-view="quotation"]').forEach(el => el.style.display = '');
+  } else {
+    document.querySelectorAll('[data-view="quotation"]').forEach(el => el.style.display = 'none');
+  }
+
+  // Report
+  if (['trinh', 'hue'].includes(loggedUser)) {
+    document.querySelectorAll('[data-view="report"]').forEach(el => el.style.display = 'none');
+  } else {
+    document.querySelectorAll('[data-view="report"]').forEach(el => el.style.display = '');
   }
   
   // Month nav
@@ -123,6 +139,9 @@ function setupUI() {
   });
   document.querySelectorAll('.chart-btn-so').forEach(b => {
     b.onclick = () => { document.querySelectorAll('.chart-btn-so').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderSOAmountChart(b.dataset.chartType); };
+  });
+  document.querySelectorAll('.chart-btn-qt').forEach(b => {
+    b.onclick = () => { document.querySelectorAll('.chart-btn-qt').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderQuotationCharts(); };
   });
   updateMonthDisplay();
 }
@@ -158,6 +177,9 @@ async function fetchData() {
     
     // Fetch Report Data
     if (typeof fetchReportData === 'function') await fetchReportData();
+
+    // Fetch Quotation Data
+    if (typeof fetchQuotationData === 'function') await fetchQuotationData();
     
     toast(`Loaded ${allData.length} POs successfully`, 'success');
     renderAll();
@@ -245,6 +267,9 @@ function renderAll() {
   renderDetailTable();
   renderAnalytics();
   if (typeof renderReportBoard === 'function') renderReportBoard();
+  if (typeof renderQuotationKPIs === 'function') renderQuotationKPIs();
+  if (typeof renderQuotationCharts === 'function') renderQuotationCharts();
+  if (typeof renderQuotationTable === 'function') renderQuotationTable();
 }
 
 // ===== SECTION 1: PO NHẬN ĐƯỢC (SO Date) =====
@@ -987,4 +1012,156 @@ function renderReportBoard() {
   }
   
   container.innerHTML = html;
+}
+
+// ===== QUOTATION DATA =====
+async function fetchQuotationData() {
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.QT_SHEET_ID}/values:batchGet?ranges=QT26!A1:AZ&ranges='QT KL'!A1:AZ&ranges='QT SS'!A1:AZ&key=${CONFIG.API_KEY}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`QT API Error: ${res.status}`);
+    const json = await res.json();
+    allQuotations = [];
+    if (json.valueRanges) {
+      json.valueRanges.forEach(vr => {
+        const rows = vr.values || [];
+        if (rows.length < 2) return;
+        
+        let headerRow = rows.find(r => r.some(c => c === 'Customer' || c === 'Amount' || c === 'Status'));
+        if (!headerRow) headerRow = rows[0] || rows[1];
+        
+        const colMap = {};
+        headerRow.forEach((c, i) => { if (c) colMap[String(c).trim()] = i; });
+        
+        const dataStartIndex = rows.indexOf(headerRow) + 1;
+        for (let i = dataStartIndex; i < rows.length; i++) {
+          const r = rows[i];
+          if (!r || r.length === 0) continue;
+          
+          let id = r[colMap['ID']];
+          if (!id) continue;
+          
+          let status = r[colMap['Status']] || '';
+          const customer = r[colMap['Customer']] || 'N/A';
+          const amountStr = r[colMap['Amount']] || '0';
+          const amount = num(amountStr);
+          const prDate = r[colMap['PR Date']] || '';
+          const qDate = r[colMap['Q Date']] || '';
+          const qMonth = num(r[colMap['Q Month']]);
+          const qYear = num(r[colMap['Q Year']]);
+          const brand = r[colMap['Brand']] || '';
+          const itemName = r[colMap['Name']] || r[colMap['Name EN']] || '';
+          const sales = r[colMap['Sales']] || '';
+          
+          if (CONFIG.SALES_FILTER !== 'All' && sales.trim() !== CONFIG.SALES_FILTER) continue;
+          
+          const isWon = allData.some(poRow => String(poRow[COLS.HISTORY] || '').includes(id));
+          if (isWon) {
+            status = '7. PO';
+          }
+          
+          allQuotations.push({ id, status, customer, amount, prDate, qDate, qMonth, qYear, brand, itemName });
+        }
+      });
+    }
+  } catch (e) {
+    console.error('Error fetching Quotation data:', e);
+  }
+}
+
+function getQTMonthData(m, y) {
+  m = m || currentMonth; y = y || currentYear;
+  return allQuotations.filter(q => q.qMonth === m && q.qYear === y);
+}
+
+function renderQuotationKPIs() {
+  const md = getQTMonthData();
+  const count = md.length;
+  const amount = md.reduce((s, q) => s + q.amount, 0);
+  
+  const wonCount = md.filter(q => q.status === '7. PO' || q.status.toLowerCase().includes('win') || q.status.toLowerCase().includes('po')).length;
+  const winRate = count > 0 ? ((wonCount / count) * 100).toFixed(1) : 0;
+  
+  const pendingAmount = md.filter(q => q.status.toLowerCase().includes('quoted') || q.status.toLowerCase().includes('pending')).reduce((s, q) => s + q.amount, 0);
+
+  const elCount = document.getElementById('kpi-qt-count');
+  if(elCount) elCount.textContent = fmt(count);
+  const elAmt = document.getElementById('kpi-qt-amount');
+  if(elAmt) elAmt.textContent = fmtCurrency(amount);
+  const elRate = document.getElementById('kpi-qt-winrate');
+  if(elRate) elRate.textContent = winRate + '%';
+  const elPending = document.getElementById('kpi-qt-pending');
+  if(elPending) elPending.textContent = fmtCurrency(pendingAmount);
+}
+
+function renderQuotationCharts() {
+  const btn = document.querySelector('.chart-btn-qt.active');
+  const type = btn ? btn.dataset.chartType : 'bar';
+  const c = getChartColors();
+  const months = getLast12Months();
+  const data = months.map(({m,y}) => getQTMonthData(m,y).reduce((s,q) => s + q.amount, 0));
+  
+  if(charts.qtMonthly) charts.qtMonthly.destroy();
+  const canvasMonthly = document.getElementById('chart-qt-monthly');
+  if (canvasMonthly) {
+    charts.qtMonthly = new Chart(canvasMonthly, {
+      type, data: {
+        labels: months.map(x=>x.label),
+        datasets: [{
+          label: 'Quoted Value', data,
+          borderColor: c.cyan, 
+          backgroundColor: type === 'bar' ? c.cyanA : 'transparent', 
+          fill: type === 'line', tension: 0.4, pointRadius: 4, pointBackgroundColor: c.cyan,
+          borderWidth: 2, borderRadius: type === 'bar' ? 6 : 0
+        }]
+      }, options: chartDefaults(), plugins: [ChartDataLabels]
+    });
+  }
+
+  const md = getQTMonthData();
+  const mapCust = {};
+  md.forEach(q => mapCust[q.customer] = (mapCust[q.customer]||0) + q.amount);
+  const sortedCust = Object.entries(mapCust).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  
+  if(charts.qtCustomer) charts.qtCustomer.destroy();
+  const canvasCust = document.getElementById('chart-qt-customer');
+  if (canvasCust) {
+    charts.qtCustomer = new Chart(canvasCust, {
+      type: 'pie',
+      data: {
+        labels: sortedCust.map(x=>x[0]),
+        datasets: [{ data: sortedCust.map(x=>x[1]), backgroundColor: Object.values(c).slice(0,8), borderWidth: 0, hoverOffset: 8 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { 
+          legend: { display: true, position: 'right', labels: { color: c.text, font: { size: 11, family: 'var(--font-stack)' } } },
+          datalabels: {
+            display: true, color: '#fff', font: { weight: 'bold', size: 10 },
+            formatter: (v, ctx) => {
+              const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+              return sum > 0 ? Math.round((v/sum)*100)+'%' : '';
+            }
+          }
+        }
+      },
+      plugins: [ChartDataLabels, modernChartPlugin]
+    });
+  }
+}
+
+function renderQuotationTable() {
+  const md = getQTMonthData().sort((a,b) => b.amount - a.amount).slice(0, 50);
+  const tbody = document.getElementById('qt-recent-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = md.map(q => `
+    <tr>
+      <td style="white-space:nowrap; color:var(--text-secondary)">${q.qDate || q.prDate}</td>
+      <td style="font-weight:600">${q.id}</td>
+      <td style="font-weight:600">${q.customer}</td>
+      <td style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${q.itemName}">${q.itemName}</td>
+      <td style="font-weight:bold; color:var(--text-primary)">${fmt(q.amount)}</td>
+      <td><span class="status-badge ${getStatusClass(q.status)}">${q.status}</span></td>
+    </tr>
+  `).join('');
 }

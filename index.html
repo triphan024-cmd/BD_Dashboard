@@ -71,6 +71,10 @@
                     <span class="nav-icon">📈</span>
                     <span class="nav-label">Analytics</span>
                 </a>
+                <a href="#" class="nav-item" data-view="quotation">
+                    <span class="nav-icon">📄</span>
+                    <span class="nav-label">Quotation</span>
+                </a>
                 <a href="#" class="nav-item" data-view="report">
                     <span class="nav-icon">📊</span>
                     <span class="nav-label">Report</span>
@@ -224,10 +228,97 @@
                 </div>
             </section>
 
-            <!-- View: Report -->
-            <section class="view-section" id="view-report">
-                <div class="timeline-container" id="report-timeline-container" style="height: calc(100vh - 100px); padding: 0 20px;">
-                    <!-- Activity timeline generated via JS -->
+            <!-- REPORT VIEW -->
+            <section id="view-report" class="view-section">
+                <!-- (Report content unchanged) -->
+                <div class="report-board">
+                    <div class="report-column">
+                        <div class="report-col-header" style="border-bottom-color:var(--accent-blue)">
+                            <h3 style="color:var(--accent-blue)">Result</h3>
+                        </div>
+                        <div class="report-col-body" id="report-result"></div>
+                    </div>
+                    <div class="report-column">
+                        <div class="report-col-header" style="border-bottom-color:var(--accent-green)">
+                            <h3 style="color:var(--accent-green)">Action</h3>
+                        </div>
+                        <div class="report-col-body" id="report-action"></div>
+                    </div>
+                    <div class="report-column">
+                        <div class="report-col-header" style="border-bottom-color:var(--accent-amber)">
+                            <h3 style="color:var(--accent-amber)">Suggest</h3>
+                        </div>
+                        <div class="report-col-body" id="report-suggest"></div>
+                    </div>
+                    <div class="report-column">
+                        <div class="report-col-header" style="border-bottom-color:var(--accent-rose)">
+                            <h3 style="color:var(--accent-rose)">Pending</h3>
+                        </div>
+                        <div class="report-col-body" id="report-pending"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- QUOTATION VIEW -->
+            <section id="view-quotation" class="view-section">
+                <div class="kpi-grid">
+                    <div class="kpi-card glass-card">
+                        <div class="kpi-icon-wrapper accent-blue"><span class="kpi-icon">📄</span></div>
+                        <div class="kpi-info"><span class="kpi-label">Total Quotations</span><span class="kpi-value" id="kpi-qt-count">—</span></div>
+                    </div>
+                    <div class="kpi-card glass-card">
+                        <div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">💰</span></div>
+                        <div class="kpi-info"><span class="kpi-label">Quoted Value</span><span class="kpi-value" id="kpi-qt-amount">—</span></div>
+                    </div>
+                    <div class="kpi-card glass-card">
+                        <div class="kpi-icon-wrapper accent-amber"><span class="kpi-icon">🏆</span></div>
+                        <div class="kpi-info"><span class="kpi-label">Win Rate</span><span class="kpi-value" id="kpi-qt-winrate">—</span></div>
+                    </div>
+                    <div class="kpi-card glass-card">
+                        <div class="kpi-icon-wrapper accent-rose"><span class="kpi-icon">⏳</span></div>
+                        <div class="kpi-info"><span class="kpi-label">Pending Value</span><span class="kpi-value" id="kpi-qt-pending">—</span></div>
+                    </div>
+                </div>
+
+                <div class="charts-grid-50">
+                    <div class="chart-card glass-card">
+                        <div class="chart-header">
+                            <h3>Quotation Value by Month</h3>
+                            <div class="chart-actions">
+                                <button class="chart-btn-qt active" data-chart-type="bar">Bar</button>
+                                <button class="chart-btn-qt" data-chart-type="line">Line</button>
+                            </div>
+                        </div>
+                        <div class="chart-body"><canvas id="chart-qt-monthly"></canvas></div>
+                    </div>
+                    <div class="chart-card glass-card">
+                        <div class="chart-header">
+                            <h3>Quotations by Customer</h3>
+                            <span class="chart-sub">Top 8</span>
+                        </div>
+                        <div class="chart-body"><canvas id="chart-qt-customer"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="card glass-card table-card" style="margin-top:20px;">
+                    <div class="table-header">
+                        <h2>Recent Quotations</h2>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>ID</th>
+                                    <th>Customer</th>
+                                    <th>Item</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="qt-recent-tbody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
         </main>
@@ -239,6 +330,6 @@
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=32"></script>
+    <script src="app.js?v=33"></script>
 </body>
 </html>
