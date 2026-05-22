@@ -100,7 +100,7 @@
                 </div>
                 <div class="header-right">
                     <button class="btn-top-sync" id="btn-top-refresh" onclick="fetchData()" title="Sync All Data">
-                        <span style="font-size: 1.1rem; line-height: 1;">🔄</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.92-10.44l5.67-5.67"/></svg>
                         <span style="font-size: 0.85rem; font-weight: 600;">Sync</span>
                     </button>
                     <div class="month-selector">
@@ -445,11 +445,15 @@
                             <table class="data-table">
                                 <thead>
                                     <tr>
-                                        <th>Date</th>
-                                        <th>Quotation ID</th>
-                                        <th>Customer</th>
-                                        <th>Brand</th>
+                                        <th>Q Date</th>
+                                        <th>ID</th>
+                                        <th>Quotation No.</th>
                                         <th>Item Name</th>
+                                        <th>Brand</th>
+                                        <th style="text-align:right">Q'ty</th>
+                                        <th>Unit</th>
+                                        <th style="text-align:right">Unit Price</th>
+                                        <th>Leadtime</th>
                                         <th style="text-align:right">Margin</th>
                                         <th style="text-align:right">Com</th>
                                         <th style="text-align:right">OP</th>
@@ -500,6 +504,6 @@
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=49"></script>
+    <script src="app.js?v=50"></script>
 </body>
 </html>

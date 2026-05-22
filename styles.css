@@ -524,18 +524,19 @@ body::before {
 
 .btn-top-sync {
     display: flex; align-items: center; gap: 6px; 
-    padding: 5px 12px; margin-right: 8px;
-    background: var(--bg-secondary); 
-    border: 1px solid var(--border-glass);
-    border-radius: var(--radius-sm); 
-    color: var(--text-primary); cursor: pointer; 
-    transition: all var(--transition-fast);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    padding: 6px 16px; margin-right: 8px;
+    background: #f0f4ff; 
+    border: none;
+    border-radius: 20px; 
+    color: #1e3a8a; cursor: pointer; 
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     font-family: var(--font-stack);
 }
 .btn-top-sync:hover { 
-    background: var(--bg-glass-hover); 
-    color: var(--text-primary);
+    background: #e0e7ff; 
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.08);
 }
 
 .header-badge {

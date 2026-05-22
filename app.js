@@ -1150,8 +1150,13 @@ async function fetchQuotationData() {
           const margin = r[colMap['Margin']] || '';
           const com = r[colMap['Com']] || '';
           const op = r[colMap['OP']] || '';
+          const qtNo = r[colMap['Quotation No.']] || r[colMap['QT No.']] || r[colMap['QT No']] || '';
+          const qty = r[colMap["Q'ty"]] || r[colMap['Qty']] || '';
+          const unit = r[colMap['Unit']] || '';
+          const unitPrice = r[colMap['Unit Price']] || '';
+          const leadtime = r[colMap['Leadtime']] || '';
 
-          allQuotations.push({ id, status, customer, amount, prDate, qDate, qMonth, qYear, brand, itemName, source: sheetSource, margin, com, op });
+          allQuotations.push({ id, status, customer, amount, prDate, qDate, qMonth, qYear, brand, itemName, source: sheetSource, margin, com, op, qtNo, qty, unit, unitPrice, leadtime });
         }
       });
     }
@@ -1250,8 +1255,10 @@ function renderQuotationCharts() {
   
   const hcColors = ['#007aff', '#34c759', '#ff9f0a', '#ff3b30', '#5ac8fa', '#af52de', '#ffcc00', '#ff2d55'];
 
+  const qtPieColors = ['#A8E6CF', '#DCEDC1', '#FFD3B6', '#FFAAA5', '#FF8B94', '#9D94FF'];
+
   const hcDataSec = sortedSecondary.map((x, i) => ({
-    name: x[0], y: x[1], color: hcColors[i % hcColors.length]
+    name: x[0], y: x[1], color: qtPieColors[i % qtPieColors.length]
   }));
   if(charts.qtSecondary && typeof charts.qtSecondary.destroy === 'function') {
     try { charts.qtSecondary.destroy(); } catch(e){}
@@ -1261,7 +1268,26 @@ function renderQuotationCharts() {
     title: { text: null },
     credits: { enabled: false },
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${fmtCurrency(this.point.y)} (${this.point.percentage.toFixed(1)}%)</b>`; } },
-    plotOptions: { pie: { size: '65%', center: ['50%', '50%'], allowPointSelect: true, cursor: 'pointer', depth: 25, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
+    plotOptions: { 
+      pie: { 
+        allowPointSelect: true, 
+        cursor: 'pointer', 
+        depth: 35, 
+        innerSize: 40, 
+        dataLabels: { 
+          enabled: true, 
+          format: '<b>{point.name}</b>: {point.percentage:.0f}%',
+          distance: 15,
+          style: {
+            color: c.text,
+            textOutline: 'none',
+            fontWeight: '600',
+            fontFamily: 'var(--font-stack)',
+            fontSize: '11px'
+          }
+        } 
+      } 
+    },
     series: [{ name: isGeneral ? 'Customer' : 'Brand', data: hcDataSec }]
   });
 
@@ -1274,7 +1300,7 @@ function renderQuotationCharts() {
   
   const sortedStatusKeys = Object.keys(mapStatus).sort((a,b) => a.localeCompare(b));
   const hcDataStatus = sortedStatusKeys.map((k, i) => ({
-    name: k, y: mapStatus[k], color: hcColors[i % hcColors.length]
+    name: k, y: mapStatus[k], color: qtPieColors[i % qtPieColors.length]
   }));
 
   if(charts.qtStatus && typeof charts.qtStatus.destroy === 'function') {
@@ -1285,7 +1311,26 @@ function renderQuotationCharts() {
     title: { text: null },
     credits: { enabled: false },
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${this.point.y} (${this.point.percentage.toFixed(1)}%)</b>`; } },
-    plotOptions: { pie: { size: '65%', center: ['50%', '50%'], allowPointSelect: true, cursor: 'pointer', depth: 25, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
+    plotOptions: { 
+      pie: { 
+        allowPointSelect: true, 
+        cursor: 'pointer', 
+        depth: 35, 
+        innerSize: 40, 
+        dataLabels: { 
+          enabled: true, 
+          format: '<b>{point.name}</b>: {point.percentage:.0f}%',
+          distance: 15,
+          style: {
+            color: c.text,
+            textOutline: 'none',
+            fontWeight: '600',
+            fontFamily: 'var(--font-stack)',
+            fontSize: '11px'
+          }
+        } 
+      } 
+    },
     series: [{ name: 'Status', data: hcDataStatus }]
   });
 
@@ -1354,12 +1399,16 @@ function renderQuotationTable() {
     <tr>
       <td style="white-space:nowrap; color:var(--text-secondary)">${q.qDate || q.prDate}</td>
       <td style="font-weight:600">${q.id}</td>
-      <td style="font-weight:600">${q.customer}</td>
-      <td style="font-weight:600; color:var(--text-secondary)">${q.brand}</td>
+      <td style="font-weight:600">${q.qtNo || '-'}</td>
       <td style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${q.itemName}">${q.itemName}</td>
-      <td style="text-align:right; font-weight:600; color:var(--text-secondary)">${q.margin}</td>
-      <td style="text-align:right; font-weight:600; color:var(--text-secondary)">${q.com}</td>
-      <td style="text-align:right; font-weight:600; color:var(--text-secondary)">${q.op}</td>
+      <td style="font-weight:600; color:var(--text-secondary)">${q.brand}</td>
+      <td style="text-align:right; font-weight:600">${q.qty || '-'}</td>
+      <td>${q.unit || '-'}</td>
+      <td style="text-align:right; font-weight:600">${q.unitPrice ? fmt(num(q.unitPrice)) : '-'}</td>
+      <td>${q.leadtime || '-'}</td>
+      <td style="text-align:right; font-weight:600; color:var(--text-secondary)">${q.margin || '-'}</td>
+      <td style="text-align:right; font-weight:600; color:var(--text-secondary)">${q.com || '-'}</td>
+      <td style="text-align:right; font-weight:600; color:var(--text-secondary)">${q.op || '-'}</td>
       <td style="text-align:right; font-weight:bold; color:var(--text-primary)">${fmt(q.amount)}</td>
       <td><span class="status-badge ${getStatusClass(q.status)}">${q.status}</span></td>
     </tr>
