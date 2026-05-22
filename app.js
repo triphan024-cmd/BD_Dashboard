@@ -2,13 +2,14 @@
 // Encoded key fallback for deployment (decoded at runtime)
 const _k = atob('QUl6YVN5RDJJcXZNdE5Jc3JTcElkVlhlY19jS2s0eEdrMTFDX0dr');
 const CONFIG = {
-  SHEET_ID: '1ncHjtkSEl9WyogeFd0OEqOjua_TyV4LT3rWiSI64gJk',
-  SHEET_NAME: 'S.SO',
-  SALES_FILTER: 'Trí',
+  SHEET_ID: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.SHEET_ID) || '1nN-N5zW-B0L36_y83vV-E946dJpIrtB58N9e1r7y82w',
+  SHEET_NAME: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.SHEET_NAME) || 'Database',
+  SALES_FILTER: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.SALES_FILTER) || 'Trí',
   API_KEY: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.API_KEY) || _k,
   ROWS_PER_PAGE: 20,
-  REPORT_SHEET_ID: '1UIqT7rWcfkaAJHZDR5Gzsb4LAcyvh2voVjwHDl7Be7U',
-  REPORT_SHEET_NAME: 'Report'
+  REPORT_SHEET_ID: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.REPORT_SHEET_ID) || '1UIqT7rWcfkaAJHZDR5Gzsb4LAcyvh2voVjwHDl7Be7U',
+  REPORT_SHEET_NAME: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.REPORT_SHEET_NAME) || 'Report',
+  QT_SHEET_ID: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.QT_SHEET_ID) || '1TTB57jpVnERMZPd17kIcr8G-3eG_Yr43W95G0710Uy4'
 };
 
 // Simple auth (hash-based for client-side security)
@@ -840,67 +841,72 @@ function renderTable(prefix, data, page) {
 // ===== ANALYTICS =====
 function renderAnalytics() {
   const c = getChartColors();
-  // Revenue trend 12 months
-  const months = [];
-  for(let i=11;i>=0;i--) { let m=currentMonth-i,y=currentYear; while(m<1){m+=12;y--;} months.push({m,y,label:`T${m}/${y}`}); }
-
-  const revData = months.map(({m,y})=>getMonthData(m,y).reduce((s,r)=>s+num(r[COLS.REVENUE]),0));
-  if(charts.trend) charts.trend.destroy();
-  charts.trend = new Chart(document.getElementById('chart-revenue-trend'), {
-    type:'line', data: {
-      labels: months.map(x=>x.label),
-      datasets: [{ label:'Doanh thu', data:revData, borderColor:c.primary, backgroundColor:c.primaryA, fill:true, tension:0.4, pointRadius:4, pointBackgroundColor:c.primary }]
-    }, options: chartDefaults()
-  });
-
-  // Customer distribution (current month)
-  const md = getMonthData();
-  const custMap = {};
-  md.forEach(r => { const cu=r[COLS.CUSTOMER]||'N/A'; custMap[cu]=(custMap[cu]||0)+num(r[COLS.REVENUE]); });
-  const custSorted = Object.entries(custMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  const dColors = [c.primary,c.cyan,c.green,c.amber,c.rose,'#8b5cf6'];
-  if(charts.custDist) charts.custDist.destroy();
-  charts.custDist = new Chart(document.getElementById('chart-customer-dist'), {
-    type:'pie', data: {
-      labels:custSorted.map(x=>x[0]), datasets:[{data:custSorted.map(x=>x[1]), backgroundColor:dColors, borderWidth:0}]
-    }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom',labels:{color:c.text,font:{size:10},padding:8}}} }
-  });
-
-  // Comparison this vs last month
-  const pm=currentMonth===1?12:currentMonth-1, py=currentMonth===1?currentYear-1:currentYear;
-  const prevMd = getMonthData(pm,py);
-  const metrics = ['PO','Doanh thu','KH','TB/Đơn'];
-  const curVals = [md.length, md.reduce((s,r)=>s+num(r[COLS.REVENUE]),0), new Set(md.map(r=>r[COLS.CUSTOMER]).filter(Boolean)).size, 0];
-  curVals[3] = curVals[0] ? curVals[1]/curVals[0] : 0;
-  const prevVals = [prevMd.length, prevMd.reduce((s,r)=>s+num(r[COLS.REVENUE]),0), new Set(prevMd.map(r=>r[COLS.CUSTOMER]).filter(Boolean)).size, 0];
-  prevVals[3] = prevVals[0] ? prevVals[1]/prevVals[0] : 0;
-  // Normalize for chart
-  const maxV = Math.max(...curVals, ...prevVals, 1);
-  if(charts.compare) charts.compare.destroy();
-  charts.compare = new Chart(document.getElementById('chart-comparison'), {
-    type:'bar', data: {
-      labels:metrics,
-      datasets: [
-        {label:`T${currentMonth}`, data:curVals, backgroundColor:c.primaryA, borderColor:c.primary, borderWidth:2, borderRadius:6},
-        {label:`T${pm}`, data:prevVals, backgroundColor:'rgba(255,255,255,0.05)', borderColor:'rgba(255,255,255,0.2)', borderWidth:2, borderRadius:6}
-      ]
-    }, options: {
-      ...chartDefaults(),
-      plugins:{legend:{display:true,labels:{color:c.text,font:{size:11}}}},
-      scales:{...chartDefaults().scales, y:{...chartDefaults().scales.y, ticks:{...chartDefaults().scales.y.ticks, callback:v=>fmtCurrency(v)}}}
+  
+  // 1. Calculate OP Amount and Commission
+  let totalOp = 0;
+  let totalCom = 0;
+  
+  // Filter data for the current year (Analytics usually looks at current year or all time, let's use allData for current year)
+  allData.forEach(r => {
+    if (!isValidPO(r)) return;
+    if (r[COLS.IV_YEAR] === String(currentYear)) {
+      totalOp += num(r[COLS.OP_AMOUNT]);
+      totalCom += num(r[COLS.BM_SALES]);
     }
   });
-
-  // Cumulative
-  let cum = 0;
-  const cumData = revData.map(v => { cum+=v; return cum; });
-  if(charts.cumulative) charts.cumulative.destroy();
-  charts.cumulative = new Chart(document.getElementById('chart-cumulative'), {
-    type:'line', data: {
-      labels:months.map(x=>x.label),
-      datasets:[{label:'Tích lũy',data:cumData,borderColor:c.green,backgroundColor:c.greenA,fill:true,tension:0.4,pointRadius:3,pointBackgroundColor:c.green}]
-    }, options: chartDefaults()
+  
+  const elOp = document.getElementById('kpi-op');
+  if (elOp) elOp.textContent = fmtCurrency(totalOp);
+  
+  const elCom = document.getElementById('kpi-com');
+  if (elCom) elCom.textContent = fmtCurrency(totalCom);
+  
+  // 2. Pending Debt Detail Chart
+  const pendingMap = {};
+  allData.forEach(r => {
+    if (!isValidPO(r)) return;
+    // Consider debt for all valid POs that are not fully paid/completed
+    const st = (r[COLS.STATUS]||'').toLowerCase();
+    if (!st.includes('8.') && !st.includes('completed') && !st.includes('cancel') && !st.includes('deleted')) {
+      const cust = r[COLS.CUSTOMER] || 'N/A';
+      pendingMap[cust] = (pendingMap[cust]||0) + num(r[COLS.AMOUNT]);
+    }
   });
+  
+  const sortedDebt = Object.entries(pendingMap).sort((a,b)=>b[1]-a[1]).slice(0, 10); // top 10
+  const debtLabels = sortedDebt.map(x => x[0]);
+  const debtData = sortedDebt.map(x => x[1]);
+  
+  if(charts.debtChart) charts.debtChart.destroy();
+  const canvasDebt = document.getElementById('chart-debt');
+  if (canvasDebt) {
+    charts.debtChart = new Chart(canvasDebt, {
+      type: 'bar',
+      data: {
+        labels: debtLabels,
+        datasets: [{
+          label: 'Pending Debt',
+          data: debtData,
+          backgroundColor: 'rgba(255, 59, 48, 0.25)', // rose with opacity
+          borderColor: c.rose,
+          borderWidth: 2,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        ...chartDefaults(),
+        plugins: {
+          legend: { display: false },
+          datalabels: {
+            color: c.text,
+            anchor: 'end',
+            align: 'top',
+            formatter: (v) => fmtCurrency(v)
+          }
+        }
+      }
+    });
+  }
 }
 
 // ===== REPORT BOARD =====
