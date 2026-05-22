@@ -106,6 +106,10 @@ function setupUI() {
       document.getElementById('view-' + currentView).classList.add('active');
       document.getElementById('page-title').textContent = el.querySelector('.nav-label').textContent;
       document.getElementById('sidebar').classList.remove('mobile-open');
+      const qtTabsHeader = document.getElementById('qt-tabs-header');
+      if (qtTabsHeader) {
+        qtTabsHeader.style.display = (currentView === 'quotation') ? 'flex' : 'none';
+      }
     };
   });
   
@@ -161,6 +165,11 @@ function setupUI() {
   document.querySelectorAll('.chart-btn-qt').forEach(b => {
     b.onclick = () => { document.querySelectorAll('.chart-btn-qt').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderQuotationCharts(); };
   });
+
+  const qtTabsHeader = document.getElementById('qt-tabs-header');
+  if (qtTabsHeader) {
+    qtTabsHeader.style.display = (currentView === 'quotation') ? 'flex' : 'none';
+  }
 
   updateMonthDisplay();
 }
@@ -1198,20 +1207,6 @@ function getQTMonthData(m, y) {
 }
 
 function renderQuotation() {
-  const sources = [
-    { id: 'QT26', label: 'General' },
-    { id: 'QT KL', label: 'Kolon' },
-    { id: 'QT SS', label: 'Samsung' }
-  ];
-  sources.forEach(src => {
-    const data = allQuotations.filter(q => q.qMonth === currentMonth && q.qYear === currentYear && q.source === src.id);
-    const sum = data.reduce((s, q) => s + q.amount, 0);
-    const btn = document.querySelector(`.qt-tab-btn[data-source="${src.id}"]`);
-    if(btn) {
-      btn.textContent = `${src.label} (${fmtCurrency(sum)})`;
-    }
-  });
-
   renderQuotationKPIs();
   renderQuotationCharts();
   renderQuotationTable();
@@ -1317,8 +1312,8 @@ function renderQuotationCharts() {
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${fmtCurrency(this.point.y)} (${this.point.percentage.toFixed(1)}%)</b>`; } },
     plotOptions: { 
       pie: { 
-        size: '50%',
-        center: ['50%', '50%'],
+        size: '65%',
+        center: ['50%', '45%'],
         allowPointSelect: true, 
         cursor: 'pointer', 
         depth: 35, 
@@ -1364,8 +1359,8 @@ function renderQuotationCharts() {
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${this.point.y} (${this.point.percentage.toFixed(1)}%)</b>`; } },
     plotOptions: { 
       pie: { 
-        size: '50%',
-        center: ['50%', '50%'],
+        size: '65%',
+        center: ['50%', '45%'],
         allowPointSelect: true, 
         cursor: 'pointer', 
         depth: 35, 
@@ -1449,8 +1444,8 @@ function renderQuotationCharts() {
 
 function renderQuotationTable() {
   const md = getQTMonthData().sort((a,b) => {
-    const daStr = (a.qDate || a.prDate || '').split(' ')[0];
-    const dbStr = (b.qDate || b.prDate || '').split(' ')[0];
+    const daStr = (a.qDate || '').split(' ')[0];
+    const dbStr = (b.qDate || '').split(' ')[0];
     const da = parseSODate(daStr);
     const db = parseSODate(dbStr);
     const daTime = da ? new Date(da.year, da.month-1, da.day).getTime() : new Date(daStr).getTime() || 0;
@@ -1461,7 +1456,7 @@ function renderQuotationTable() {
   if(!tbody) return;
   tbody.innerHTML = md.map(q => `
     <tr>
-      <td style="white-space:nowrap; color:var(--text-secondary)">${q.qDate || q.prDate}</td>
+      <td style="white-space:nowrap; color:var(--text-secondary)">${q.qDate || '-'}</td>
       <td style="font-weight:600">${q.id}</td>
       <td style="font-weight:600">${q.qtNo || '-'}</td>
       <td style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${q.itemName}">${q.itemName}</td>

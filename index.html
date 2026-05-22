@@ -91,11 +91,19 @@
         <!-- Main Content -->
         <main class="main-content" id="main-content">
             <header class="top-header">
-                <div class="header-left">
-                    <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
-                    <div>
-                        <h1 id="page-title">Quotation</h1>
-                        <p class="header-subtitle" id="header-subtitle">BD Team — Trình</p>
+                <div class="header-left" style="display:flex; align-items:center; gap:20px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
+                        <div>
+                            <h1 id="page-title">Quotation</h1>
+                            <p class="header-subtitle" id="header-subtitle">BD Team — Trình</p>
+                        </div>
+                    </div>
+                    <!-- Quotation Tabs in Header -->
+                    <div class="qt-tabs-container" id="qt-tabs-header" style="display:none; margin:0;">
+                        <button class="qt-tab-btn active" data-source="QT26">General</button>
+                        <button class="qt-tab-btn" data-source="QT KL">Kolon</button>
+                        <button class="qt-tab-btn" data-source="QT SS">Samsung</button>
                     </div>
                 </div>
                 <div class="header-right">
@@ -351,12 +359,6 @@
 
                 <!-- View: Quotation -->
                 <section id="view-quotation" class="view-section active">
-                    <div class="qt-tabs-container">
-                        <button class="qt-tab-btn active" data-source="QT26">General (QT26)</button>
-                        <button class="qt-tab-btn" data-source="QT KL">Kolon (QT KL)</button>
-                        <button class="qt-tab-btn" data-source="QT SS">Samsung (QT SS)</button>
-                    </div>
-
                     <div class="kpi-grid">
                         <div class="kpi-card glass-card">
                             <div class="kpi-icon-wrapper accent-blue"><span class="kpi-icon">📄</span></div>
@@ -402,14 +404,14 @@
                                 <h3 id="qt-secondary-title">Quotations by Customer</h3>
                                 <span class="chart-sub">Distribution</span>
                             </div>
-                            <div class="chart-body"><div id="chart-qt-secondary" style="height:100%; min-height:420px;"></div></div>
+                            <div class="chart-body"><div id="chart-qt-secondary" style="height:100%;"></div></div>
                         </div>
                         <div class="chart-card glass-card">
                             <div class="chart-header">
                                 <h3>Quotation Status</h3>
                                 <span class="chart-sub">Distribution</span>
                             </div>
-                            <div class="chart-body"><div id="chart-qt-status" style="height:100%; min-height:420px;"></div></div>
+                            <div class="chart-body"><div id="chart-qt-status" style="height:100%;"></div></div>
                         </div>
                     </div>
                     
@@ -435,13 +437,13 @@
                     </div>
 
                     <div class="card glass-card table-card" style="margin-top:20px;">
-                        <div class="table-header">
-                            <h2>Recent Quotations</h2>
+                        <div class="table-header" style="padding:20px 24px; border-bottom:1px solid var(--border-glass); display:flex; justify-content:space-between; align-items:center;">
+                            <h2 style="margin:0; font-size:1.1rem; font-weight:700;">Recent Quotations</h2>
                             <div class="table-actions">
                                 <input type="text" id="qt-search" placeholder="Search quotations..." class="search-input" onkeyup="filterQuotationTable()">
                             </div>
                         </div>
-                        <div class="table-container">
+                        <div class="table-container" style="border:none; border-radius:0; box-shadow:none;">
                             <table class="data-table">
                                 <thead>
                                     <tr>
@@ -503,6 +505,6 @@
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
     <!-- Custom Scripts -->
-    <script src="app.js?v=52"></script>
+    <script src="app.js?v=53"></script>
 </body>
 </html>
