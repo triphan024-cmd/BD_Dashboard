@@ -1171,6 +1171,20 @@ function getQTMonthData(m, y) {
 }
 
 function renderQuotation() {
+  const sources = [
+    { id: 'QT26', label: 'General' },
+    { id: 'QT KL', label: 'Kolon' },
+    { id: 'QT SS', label: 'Samsung' }
+  ];
+  sources.forEach(src => {
+    const data = allQuotations.filter(q => q.qMonth === currentMonth && q.qYear === currentYear && q.source === src.id);
+    const sum = data.reduce((s, q) => s + q.amount, 0);
+    const btn = document.querySelector(`.qt-tab-btn[data-source="${src.id}"]`);
+    if(btn) {
+      btn.textContent = `${src.label} (${fmtCurrency(sum)})`;
+    }
+  });
+
   renderQuotationKPIs();
   renderQuotationCharts();
   renderQuotationTable();
@@ -1256,6 +1270,12 @@ function renderQuotationCharts() {
   const hcColors = ['#007aff', '#34c759', '#ff9f0a', '#ff3b30', '#5ac8fa', '#af52de', '#ffcc00', '#ff2d55'];
 
   const qtPieColors = ['#A8E6CF', '#DCEDC1', '#FFD3B6', '#FFAAA5', '#FF8B94', '#9D94FF'];
+  
+  const statusColors = {
+    '1': '#8e8e93',
+    '2': '#007aff', '3': '#069494', '4': '#af52de',
+    '5': '#ff3b30', '6': '#34c759', '7': '#ff9f0a', '8': '#ffcc00'
+  };
 
   const hcDataSec = sortedSecondary.map((x, i) => ({
     name: x[0], y: x[1], color: qtPieColors[i % qtPieColors.length]
@@ -1270,6 +1290,8 @@ function renderQuotationCharts() {
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${fmtCurrency(this.point.y)} (${this.point.percentage.toFixed(1)}%)</b>`; } },
     plotOptions: { 
       pie: { 
+        size: '50%',
+        center: ['50%', '50%'],
         allowPointSelect: true, 
         cursor: 'pointer', 
         depth: 35, 
@@ -1299,9 +1321,11 @@ function renderQuotationCharts() {
   });
   
   const sortedStatusKeys = Object.keys(mapStatus).sort((a,b) => a.localeCompare(b));
-  const hcDataStatus = sortedStatusKeys.map((k, i) => ({
-    name: k, y: mapStatus[k], color: qtPieColors[i % qtPieColors.length]
-  }));
+  const hcDataStatus = sortedStatusKeys.map((k, i) => {
+    const prefixMatch = k.match(/^\d+/);
+    const color = prefixMatch && statusColors[prefixMatch[0]] ? statusColors[prefixMatch[0]] : '#8e8e93';
+    return { name: k, y: mapStatus[k], color: color };
+  });
 
   if(charts.qtStatus && typeof charts.qtStatus.destroy === 'function') {
     try { charts.qtStatus.destroy(); } catch(e){}
@@ -1313,6 +1337,8 @@ function renderQuotationCharts() {
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${this.point.y} (${this.point.percentage.toFixed(1)}%)</b>`; } },
     plotOptions: { 
       pie: { 
+        size: '50%',
+        center: ['50%', '50%'],
         allowPointSelect: true, 
         cursor: 'pointer', 
         depth: 35, 
@@ -1341,15 +1367,12 @@ function renderQuotationCharts() {
     mapStatusAmount[st] = (mapStatusAmount[st] || 0) + q.amount;
   });
 
-  const statusColorMap = {};
-  hcDataStatus.forEach(x => { statusColorMap[x.name] = x.color; });
-
   const sortedStatusList = sortedStatusKeys.map(k => [k, mapStatusAmount[k] || 0]);
   const statusListEl = document.getElementById('qt-status-list');
   if(statusListEl) {
     statusListEl.innerHTML = sortedStatusList.map(([name,val],i) => {
-      const color = statusColorMap[name] || '#8e8e93';
       const prefixMatch = name.match(/^\d+/);
+      const color = prefixMatch && statusColors[prefixMatch[0]] ? statusColors[prefixMatch[0]] : '#8e8e93';
       const displayRank = prefixMatch ? prefixMatch[0] : (i+1);
       return `<div class="ranking-item"><div class="ranking-rank" style="color:${color} !important; border:2px solid ${color} !important; background:transparent !important; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:bold;">${displayRank}</div><div class="ranking-name" style="color:${color}; font-weight:600;" title="${name}">${name}</div><div class="ranking-value" style="color:${color}; font-weight:bold;">${fmtCurrency(val)}</div></div>`;
     }).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
@@ -1366,17 +1389,23 @@ function renderQuotationCharts() {
         datasets: [{
           label: 'Amount',
           data: sortedStatusList.map(x => x[1]),
-          backgroundColor: sortedStatusList.map(x => statusColorMap[x[0]] || '#8e8e93'),
+          backgroundColor: sortedStatusList.map(x => {
+            const prefixMatch = x[0].match(/^\d+/);
+            return prefixMatch && statusColors[prefixMatch[0]] ? statusColors[prefixMatch[0]] : '#8e8e93';
+          }),
           borderRadius: 6, borderWidth: 0
         }]
       },
       options: {
         ...chartDefaults(),
         indexAxis: 'y', // horizontal bar
+        layout: {
+          padding: { right: 60 } // Prevent labels from being cut off
+        },
         plugins: {
           legend: { display: false },
           datalabels: {
-            display: true, color: '#fff', align: 'right', anchor: 'end',
+            display: true, color: c.text, align: 'right', anchor: 'end',
             font: { weight: 'bold', size: 10 },
             formatter: (v) => fmtCurrency(v)
           }
@@ -1392,7 +1421,15 @@ function renderQuotationCharts() {
 }
 
 function renderQuotationTable() {
-  const md = getQTMonthData().sort((a,b) => b.amount - a.amount).slice(0, 50);
+  const md = getQTMonthData().sort((a,b) => {
+    const daStr = (a.qDate || a.prDate || '').split(' ')[0];
+    const dbStr = (b.qDate || b.prDate || '').split(' ')[0];
+    const da = parseSODate(daStr);
+    const db = parseSODate(dbStr);
+    const daTime = da ? new Date(da.year, da.month-1, da.day).getTime() : new Date(daStr).getTime() || 0;
+    const dbTime = db ? new Date(db.year, db.month-1, db.day).getTime() : new Date(dbStr).getTime() || 0;
+    return dbTime - daTime;
+  }).slice(0, 50);
   const tbody = document.getElementById('qt-recent-tbody');
   if(!tbody) return;
   tbody.innerHTML = md.map(q => `
