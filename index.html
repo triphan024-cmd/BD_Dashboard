@@ -219,93 +219,241 @@
             </section>
 
             <!-- View: Analytics -->
-            <section class="view-section" id="view-analytics">
-                <div class="analytics-grid">
-                    <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>Revenue Trend (12 Months)</h3></div><div class="chart-body chart-tall"><canvas id="chart-revenue-trend"></canvas></div></div>
-                    <div class="chart-card glass-card"><div class="chart-header"><h3>Customer Distribution</h3></div><div class="chart-body chart-tall"><canvas id="chart-customer-dist"></canvas></div></div>
-                    <div class="chart-card glass-card chart-wide"><div class="chart-header"><h3>This Month vs Last Month</h3></div><div class="chart-body"><canvas id="chart-comparison"></canvas></div></div>
-                    <div class="chart-card glass-card"><div class="chart-header"><h3>Cumulative Growth</h3></div><div class="chart-body chart-tall"><canvas id="chart-cumulative"></canvas></div></div>
-                </div>
-            </section>
+            <div class="view-container">
+                <!-- View: Overview -->
+                <section id="view-overview" class="view-section active">
+                    <!-- KPI Grid -->
+                    <div class="kpi-grid">
+                        <div class="kpi-card glass-card primary-gradient">
+                            <div class="kpi-icon-wrapper"><span class="kpi-icon">💰</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Revenue</span><span class="kpi-value" id="kpi-revenue">—</span></div>
+                        </div>
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">📈</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Profit</span><span class="kpi-value" id="kpi-profit">—</span></div>
+                        </div>
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-amber"><span class="kpi-icon">🎯</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Avg Margin</span><span class="kpi-value" id="kpi-margin">—</span></div>
+                        </div>
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-purple"><span class="kpi-icon">📦</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Total POs</span><span class="kpi-value" id="kpi-orders">—</span></div>
+                        </div>
+                    </div>
 
-            <!-- View: Report -->
-            <section class="view-section" id="view-report">
-                <div class="timeline-container" id="report-timeline-container" style="height: calc(100vh - 100px); padding: 0 20px;">
-                    <!-- Activity timeline generated via JS -->
-                </div>
-            </section>
+                    <!-- Charts Row -->
+                    <div class="charts-row">
+                        <div class="chart-card glass-card">
+                            <div class="chart-header">
+                                <h3>Monthly Revenue</h3>
+                                <div class="chart-actions">
+                                    <button class="chart-btn" data-chart-type="bar">Bar</button>
+                                    <button class="chart-btn active" data-chart-type="line">Line</button>
+                                </div>
+                            </div>
+                            <div class="chart-body"><canvas id="chart-revenue"></canvas></div>
+                        </div>
+                        <div class="chart-card glass-card">
+                            <div class="chart-header">
+                                <h3>Top Customers</h3>
+                                <span class="chart-sub">Top 6</span>
+                            </div>
+                            <div class="chart-body"><canvas id="chart-customer"></canvas></div>
+                        </div>
+                    </div>
 
-            <!-- QUOTATION VIEW -->
-            <section id="view-quotation" class="view-section">
-                <div class="kpi-grid">
-                    <div class="kpi-card glass-card">
-                        <div class="kpi-icon-wrapper accent-blue"><span class="kpi-icon">📄</span></div>
-                        <div class="kpi-info"><span class="kpi-label">Total Quotations</span><span class="kpi-value" id="kpi-qt-count">—</span></div>
+                    <!-- Table Row -->
+                    <div class="card glass-card table-card">
+                        <div class="table-header">
+                            <h2>Recent Purchase Orders</h2>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Customer</th>
+                                        <th>Project / Item</th>
+                                        <th style="text-align:right">Revenue</th>
+                                        <th style="text-align:right">Profit</th>
+                                        <th style="text-align:center">Margin</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-orders-tbody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="kpi-card glass-card">
-                        <div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">💰</span></div>
-                        <div class="kpi-info"><span class="kpi-label">Quoted Value</span><span class="kpi-value" id="kpi-qt-amount">—</span></div>
-                    </div>
-                    <div class="kpi-card glass-card">
-                        <div class="kpi-icon-wrapper accent-amber"><span class="kpi-icon">🏆</span></div>
-                        <div class="kpi-info"><span class="kpi-label">Win Rate</span><span class="kpi-value" id="kpi-qt-winrate">—</span></div>
-                    </div>
-                    <div class="kpi-card glass-card">
-                        <div class="kpi-icon-wrapper accent-rose"><span class="kpi-icon">⏳</span></div>
-                        <div class="kpi-info"><span class="kpi-label">Pending Value</span><span class="kpi-value" id="kpi-qt-pending">—</span></div>
-                    </div>
-                </div>
+                </section>
 
-                <div class="charts-grid-50">
-                    <div class="chart-card glass-card">
-                        <div class="chart-header">
-                            <h3>Quotation Value by Month</h3>
-                            <div class="chart-actions">
-                                <button class="chart-btn-qt active" data-chart-type="bar">Bar</button>
-                                <button class="chart-btn-qt" data-chart-type="line">Line</button>
+                <!-- View: PO Received -->
+                <section id="view-details" class="view-section">
+                    <div class="kpi-grid" style="margin-bottom:24px;">
+                        <div class="kpi-card glass-card primary-gradient">
+                            <div class="kpi-icon-wrapper"><span class="kpi-icon">💰</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Total Amount</span><span class="kpi-value" id="kpi-po-amount">—</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="charts-row">
+                        <div class="chart-card glass-card">
+                            <div class="chart-header">
+                                <h3>PO Amount by Month</h3>
+                                <div class="chart-actions">
+                                    <button class="chart-btn-po active" data-chart-type="bar">Bar</button>
+                                    <button class="chart-btn-po" data-chart-type="line">Line</button>
+                                </div>
+                            </div>
+                            <div class="chart-body"><canvas id="chart-po-monthly"></canvas></div>
+                        </div>
+                        <div class="chart-card glass-card">
+                            <div class="chart-header">
+                                <h3>PO Status</h3>
+                                <span class="chart-sub">Distribution</span>
+                            </div>
+                            <div class="chart-body"><canvas id="chart-status"></canvas></div>
+                        </div>
+                    </div>
+                    
+                    <div class="card glass-card table-card mt-24">
+                        <div class="table-header">
+                            <h2>Detailed PO Records</h2>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>ID/SO</th>
+                                        <th>Customer</th>
+                                        <th>Item Name</th>
+                                        <th style="text-align:right">Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="details-tbody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Report -->
+                <section class="view-section" id="view-report">
+                    <div class="timeline-container" id="report-timeline-container" style="height: calc(100vh - 100px); padding: 0 20px;">
+                        <!-- Activity timeline generated via JS -->
+                    </div>
+                </section>
+
+                <!-- QUOTATION VIEW -->
+                <section id="view-quotation" class="view-section">
+                    <div class="qt-tabs-container">
+                        <button class="qt-tab-btn active" data-source="QT26">General (QT26)</button>
+                        <button class="qt-tab-btn" data-source="QT KL">Kolon (QT KL)</button>
+                        <button class="qt-tab-btn" data-source="QT SS">Samsung (QT SS)</button>
+                    </div>
+                    <div class="kpi-grid">
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-blue"><span class="kpi-icon">📄</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Total Quotations</span><span class="kpi-value" id="kpi-qt-count">—</span></div>
+                        </div>
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">💰</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Quoted Value</span><span class="kpi-value" id="kpi-qt-amount">—</span></div>
+                        </div>
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-amber"><span class="kpi-icon">🏆</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Win Rate</span><span class="kpi-value" id="kpi-qt-winrate">—</span></div>
+                        </div>
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-rose"><span class="kpi-icon">⏳</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Pending Value</span><span class="kpi-value" id="kpi-qt-pending">—</span></div>
+                        </div>
+                    </div>
+
+                    <div class="charts-row">
+                        <div class="chart-card glass-card">
+                            <div class="chart-header">
+                                <h3>Quotation Value by Month</h3>
+                                <div class="chart-actions">
+                                    <button class="chart-btn-qt active" data-chart-type="bar">Bar</button>
+                                    <button class="chart-btn-qt" data-chart-type="line">Line</button>
+                                </div>
+                            </div>
+                            <div class="chart-body"><canvas id="chart-qt-monthly"></canvas></div>
+                        </div>
+                        <div class="chart-card glass-card">
+                            <div class="chart-header">
+                                <h3>Quotations by Customer</h3>
+                                <span class="chart-sub">Top 8</span>
+                            </div>
+                            <div class="chart-body"><canvas id="chart-qt-customer"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="card glass-card table-card" style="margin-top:20px;">
+                        <div class="table-header">
+                            <h2>Recent Quotations</h2>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Quotation ID</th>
+                                        <th>Customer</th>
+                                        <th>Item Name</th>
+                                        <th style="text-align:right">Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="qt-recent-tbody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Analytics -->
+                <section id="view-analytics" class="view-section">
+                    <div class="kpi-grid">
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-rose"><span class="kpi-icon">💸</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Total OP Amount</span><span class="kpi-value" id="kpi-op">—</span></div>
+                        </div>
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-purple"><span class="kpi-icon">💰</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Total Commission</span><span class="kpi-value" id="kpi-com">—</span></div>
+                        </div>
+                    </div>
+                    <div class="charts-row" style="margin-top:20px;">
+                        <div class="chart-card glass-card" style="flex:1;">
+                            <div class="chart-header">
+                                <h3>Pending Debt Detail</h3>
+                                <span class="chart-sub">Top Pending Payments</span>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="chart-debt"></canvas>
                             </div>
                         </div>
-                        <div class="chart-body"><canvas id="chart-qt-monthly"></canvas></div>
                     </div>
-                    <div class="chart-card glass-card">
-                        <div class="chart-header">
-                            <h3>Quotations by Customer</h3>
-                            <span class="chart-sub">Top 8</span>
-                        </div>
-                        <div class="chart-body"><canvas id="chart-qt-customer"></canvas></div>
-                    </div>
-                </div>
-
-                <div class="card glass-card table-card" style="margin-top:20px;">
-                    <div class="table-header">
-                        <h2>Recent Quotations</h2>
-                    </div>
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>ID</th>
-                                    <th>Customer</th>
-                                    <th>Item</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="qt-recent-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
+                </section>
+            </div>
         </main>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=35"></script>
+    <script src="app.js?v=36"></script>
 </body>
 </html>

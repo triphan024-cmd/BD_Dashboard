@@ -34,7 +34,7 @@ const COLS = {
 
 const DISPLAY_COLS = ['ID_SO','STATUS','SO_DATE','CUSTOMER','PO_NO','NAME','QTY','AMOUNT','REVENUE','PROFIT','MARGIN','IV_MONTH','IV_YEAR','SALES_SITUATION'];
 
-let allData = [], allQuotations = [], charts = {}, currentMonth, currentYear, currentView = 'overview';
+let allData = [], allQuotations = [], charts = {}, currentMonth, currentYear, currentView = 'overview', currentQtSource = 'QT26';
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -99,6 +99,16 @@ function setupUI() {
       document.getElementById('view-' + currentView).classList.add('active');
       document.getElementById('page-title').textContent = el.querySelector('.nav-label').textContent;
       document.getElementById('sidebar').classList.remove('mobile-open');
+    };
+  });
+  
+  // Setup Quotation Sub-Tabs
+  document.querySelectorAll('.qt-tab-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      document.querySelectorAll('.qt-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentQtSource = btn.dataset.source;
+      if (typeof renderQuotation === 'function') renderQuotation();
     };
   });
   
@@ -1048,6 +1058,13 @@ async function fetchQuotationData() {
           }
         }
         
+        let sheetSource = 'QT26';
+        if (vr.range) {
+          const rText = vr.range.toUpperCase();
+          if (rText.includes('KL')) sheetSource = 'QT KL';
+          else if (rText.includes('SS')) sheetSource = 'QT SS';
+        }
+
         for (let i = dataStartIndex; i < rows.length; i++) {
           const r = rows[i];
           if (!r || r.length === 0) continue;
@@ -1093,7 +1110,7 @@ async function fetchQuotationData() {
             status = '7. PO';
           }
           
-          allQuotations.push({ id, status, customer, amount, prDate, qDate, qMonth, qYear, brand, itemName });
+          allQuotations.push({ id, status, customer, amount, prDate, qDate, qMonth, qYear, brand, itemName, source: sheetSource });
         }
       });
     }
@@ -1104,7 +1121,7 @@ async function fetchQuotationData() {
 
 function getQTMonthData(m, y) {
   m = m || currentMonth; y = y || currentYear;
-  return allQuotations.filter(q => q.qMonth === m && q.qYear === y);
+  return allQuotations.filter(q => q.qMonth === m && q.qYear === y && q.source === currentQtSource);
 }
 
 function renderQuotationKPIs() {
