@@ -1075,18 +1075,34 @@ async function fetchQuotationData() {
           const r = rows[i];
           if (!r || r.length === 0) continue;
           
-          let id = r[colMap['ID']];
+          let id, status, customer, amountStr, prDate, qDate, qMonth, qYear, brand, itemName, sales;
+
+          if (sheetSource === 'QT SS') {
+            id = r[0];
+            sales = r[1] || '';
+            status = r[2] || '';
+            customer = r[4] || 'Samsung';
+            prDate = r[7] || '';
+            itemName = r[9] || r[6] || '';
+            brand = r[12] || '';
+            amountStr = r[20] || r[15] || '0';
+            qDate = '';
+          } else {
+            id = r[colMap['ID']];
+            status = r[colMap['Status']] || '';
+            customer = r[colMap['Customer']] || 'N/A';
+            amountStr = r[colMap['Amount']] || '0';
+            prDate = r[colMap['PR Date']] || '';
+            qDate = r[colMap['Q Date']] || '';
+            qMonth = num(r[colMap['Q Month']]);
+            qYear = num(r[colMap['Q Year']]);
+            brand = r[colMap['Brand']] || '';
+            itemName = r[colMap['Name']] || r[colMap['Name EN']] || '';
+            sales = r[colMap['Sales']] || '';
+          }
+          
           if (!id) continue;
-          
-          let status = r[colMap['Status']] || '';
-          const customer = r[colMap['Customer']] || 'N/A';
-          const amountStr = r[colMap['Amount']] || '0';
           const amount = num(amountStr);
-          const prDate = r[colMap['PR Date']] || '';
-          const qDate = r[colMap['Q Date']] || '';
-          
-          let qMonth = num(r[colMap['Q Month']]);
-          let qYear = num(r[colMap['Q Year']]);
           
           // Fallback parsing if Q Month or Q Year is missing
           if (!qMonth || !qYear) {
@@ -1105,9 +1121,6 @@ async function fetchQuotationData() {
               }
             }
           }
-          const brand = r[colMap['Brand']] || '';
-          const itemName = r[colMap['Name']] || r[colMap['Name EN']] || '';
-          const sales = r[colMap['Sales']] || '';
           
           if (CONFIG.SALES_FILTER !== 'All' && sales.trim() !== CONFIG.SALES_FILTER) continue;
           
@@ -1192,6 +1205,46 @@ function renderQuotationCharts() {
         responsive: true, maintainAspectRatio: false,
         plugins: { 
           legend: { display: true, position: 'right', labels: { color: c.text, font: { size: 11, family: 'var(--font-stack)' } } },
+          datalabels: {
+            display: true, color: '#fff', font: { weight: 'bold', size: 10 },
+            formatter: (v, ctx) => {
+              const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+              return sum > 0 ? Math.round((v/sum)*100)+'%' : '';
+            }
+          }
+        }
+      },
+      plugins: [ChartDataLabels, modernChartPlugin]
+    });
+  }
+
+  // 3. Status Distribution Chart
+  const mapStatus = {};
+  md.forEach(q => {
+    let st = q.status || 'N/A';
+    if (st.includes('Quoted')) st = 'Quoted';
+    else if (st.includes('No Quote')) st = 'No Quote';
+    else if (st.includes('PO') || st.includes('Win')) st = 'Won (PO)';
+    mapStatus[st] = (mapStatus[st]||0) + 1; // Count by number of quotations
+  });
+  
+  if(charts.qtStatus) charts.qtStatus.destroy();
+  const canvasStatus = document.getElementById('chart-qt-status');
+  if (canvasStatus) {
+    charts.qtStatus = new Chart(canvasStatus, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(mapStatus),
+        datasets: [{ 
+          data: Object.values(mapStatus), 
+          backgroundColor: [c.amber, c.rose, c.green, c.primary, c.cyan, c.purple], 
+          borderWidth: 0, hoverOffset: 6 
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '65%',
+        plugins: { 
+          legend: { display: true, position: 'right', labels: { color: c.text, font: { size: 11 } } },
           datalabels: {
             display: true, color: '#fff', font: { weight: 'bold', size: 10 },
             formatter: (v, ctx) => {
