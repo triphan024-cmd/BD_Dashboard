@@ -1285,6 +1285,28 @@ function renderQuotationCharts() {
     plotOptions: { pie: { allowPointSelect: true, cursor: 'pointer', depth: 35, innerSize: 40, dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.1f} %' } } },
     series: [{ name: 'Status', data: hcDataStatus }]
   });
+
+  // Quotation Status Breakdown List
+  const mapStatusAmount = {};
+  md.forEach(q => {
+    let st = q.status || 'N/A';
+    if (st.includes('Quoted')) st = 'Quoted';
+    else if (st.includes('No Quote')) st = 'No Quote';
+    else if (st.includes('PO') || st.includes('Win')) st = 'Won (PO)';
+    mapStatusAmount[st] = (mapStatusAmount[st] || 0) + q.amount;
+  });
+
+  const statusColorMap = {};
+  hcDataStatus.forEach(x => { statusColorMap[x.name] = x.color; });
+
+  const sortedStatusList = Object.entries(mapStatusAmount).sort((a,b) => b[1] - a[1]);
+  const statusListEl = document.getElementById('qt-status-list');
+  if(statusListEl) {
+    statusListEl.innerHTML = sortedStatusList.map(([name,val],i) => {
+      const color = statusColorMap[name] || '#8e8e93';
+      return `<div class="ranking-item"><div class="ranking-rank" style="color:${color} !important; border:2px solid ${color} !important; background:transparent !important; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:bold;">${i+1}</div><div class="ranking-name" style="color:${color}; font-weight:600;" title="${name}">${name}</div><div class="ranking-value" style="color:${color}; font-weight:bold;">${fmtCurrency(val)}</div></div>`;
+    }).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
+  }
 }
 
 function renderQuotationTable() {

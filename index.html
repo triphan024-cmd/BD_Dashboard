@@ -396,7 +396,7 @@
                         </div>
                     </div>
                     
-                    <div class="charts-row">
+                    <div class="charts-grid-50">
                         <div class="chart-card glass-card">
                             <div class="chart-header">
                                 <h3 id="qt-secondary-title">Quotations by Customer</h3>
@@ -410,6 +410,18 @@
                                 <span class="chart-sub">Distribution</span>
                             </div>
                             <div class="chart-body"><div id="chart-qt-status" style="height:100%; min-height:300px;"></div></div>
+                        </div>
+                    </div>
+                    
+                    <div class="charts-row" style="margin-top: 20px;">
+                        <div class="chart-card glass-card" style="flex:1">
+                            <div class="chart-header">
+                                <h3>Quotation Status Breakdown</h3>
+                                <span class="chart-sub">Amount by Status</span>
+                            </div>
+                            <div class="chart-body">
+                                <div id="qt-status-list" class="ranking-list"></div>
+                            </div>
                         </div>
                     </div>
 
@@ -473,6 +485,6 @@
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
 
     <script src="config.js"></script>
-    <script src="app.js?v=44"></script>
+    <script src="app.js?v=45"></script>
 </body>
 </html>
