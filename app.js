@@ -1222,6 +1222,9 @@ function renderQuotationKPIs() {
   
   const pendingAmount = md.filter(q => q.status.toLowerCase().includes('quoted') || q.status.toLowerCase().includes('pending')).reduce((s, q) => s + q.amount, 0);
 
+  const headerAmountEl = document.getElementById('header-qt-amount');
+  if (headerAmountEl) headerAmountEl.textContent = fmtCurrency(amount);
+
   const elCount = document.getElementById('kpi-qt-count');
   if(elCount) elCount.textContent = fmt(count);
   const elAmt = document.getElementById('kpi-qt-amount');
@@ -1312,8 +1315,6 @@ function renderQuotationCharts() {
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${fmtCurrency(this.point.y)} (${this.point.percentage.toFixed(1)}%)</b>`; } },
     plotOptions: { 
       pie: { 
-        size: '65%',
-        center: ['50%', '45%'],
         allowPointSelect: true, 
         cursor: 'pointer', 
         depth: 35, 
@@ -1359,8 +1360,6 @@ function renderQuotationCharts() {
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${this.point.y} (${this.point.percentage.toFixed(1)}%)</b>`; } },
     plotOptions: { 
       pie: { 
-        size: '65%',
-        center: ['50%', '45%'],
         allowPointSelect: true, 
         cursor: 'pointer', 
         depth: 35, 
@@ -1422,7 +1421,7 @@ function renderQuotationCharts() {
         ...chartDefaults(),
         indexAxis: 'y', // horizontal bar
         layout: {
-          padding: { right: 60 } // Prevent labels from being cut off
+          padding: { right: 60, left: 15 } // Prevent labels from being cut off
         },
         plugins: {
           legend: { display: false },
@@ -1457,6 +1456,7 @@ function renderQuotationTable() {
   tbody.innerHTML = md.map(q => `
     <tr>
       <td style="white-space:nowrap; color:var(--text-secondary)">${q.qDate || '-'}</td>
+      <td><span class="status-badge ${getStatusClass(q.status)}">${q.status}</span></td>
       <td style="font-weight:600">${q.id}</td>
       <td style="font-weight:600">${q.qtNo || '-'}</td>
       <td style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${q.itemName}">${q.itemName}</td>
@@ -1469,7 +1469,6 @@ function renderQuotationTable() {
       <td style="text-align:right; font-weight:600; color:var(--text-secondary)">${q.com || '-'}</td>
       <td style="text-align:right; font-weight:600; color:var(--text-secondary)">${q.op || '-'}</td>
       <td style="text-align:right; font-weight:bold; color:var(--text-primary)">${fmt(q.amount)}</td>
-      <td><span class="status-badge ${getStatusClass(q.status)}">${q.status}</span></td>
     </tr>
   `).join('');
 }

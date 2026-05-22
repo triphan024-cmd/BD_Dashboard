@@ -100,10 +100,11 @@
                         </div>
                     </div>
                     <!-- Quotation Tabs in Header -->
-                    <div class="qt-tabs-container" id="qt-tabs-header" style="display:none; margin:0;">
+                    <div class="qt-tabs-container" id="qt-tabs-header" style="display:none; margin:0; align-items:center;">
                         <button class="qt-tab-btn active" data-source="QT26">General</button>
                         <button class="qt-tab-btn" data-source="QT KL">Kolon</button>
                         <button class="qt-tab-btn" data-source="QT SS">Samsung</button>
+                        <div style="margin-left: 15px; padding: 6px 14px; background: rgba(0, 122, 255, 0.1); color: var(--accent-primary); font-weight: 700; border-radius: 20px; font-size: 0.95rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" id="header-qt-amount">0</div>
                     </div>
                 </div>
                 <div class="header-right">
@@ -361,20 +362,20 @@
                 <section id="view-quotation" class="view-section active">
                     <div class="kpi-grid">
                         <div class="kpi-card glass-card">
-                            <div class="kpi-icon-wrapper accent-blue"><span class="kpi-icon">📄</span></div>
-                            <div class="kpi-info"><span class="kpi-label">Total Quotations</span><span class="kpi-value" id="kpi-qt-count">—</span></div>
-                        </div>
-                        <div class="kpi-card glass-card">
                             <div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">💰</span></div>
-                            <div class="kpi-info"><span class="kpi-label">Quoted Value</span><span class="kpi-value" id="kpi-qt-amount">—</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Total Value</span><span class="kpi-value" id="kpi-qt-amount">—</span></div>
                         </div>
                         <div class="kpi-card glass-card">
-                            <div class="kpi-icon-wrapper accent-amber"><span class="kpi-icon">🏆</span></div>
-                            <div class="kpi-info"><span class="kpi-label">Win Rate</span><span class="kpi-value" id="kpi-qt-winrate">—</span></div>
+                            <div class="kpi-icon-wrapper accent-blue"><span class="kpi-icon">📄</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Total Items</span><span class="kpi-value" id="kpi-qt-count">—</span></div>
                         </div>
                         <div class="kpi-card glass-card">
                             <div class="kpi-icon-wrapper accent-rose"><span class="kpi-icon">⏳</span></div>
                             <div class="kpi-info"><span class="kpi-label">Pending Value</span><span class="kpi-value" id="kpi-qt-pending">—</span></div>
+                        </div>
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-amber"><span class="kpi-icon">🏆</span></div>
+                            <div class="kpi-info"><span class="kpi-label">Win Rate</span><span class="kpi-value" id="kpi-qt-winrate">—</span></div>
                         </div>
                     </div>
 
@@ -440,7 +441,10 @@
                         <div class="table-header" style="padding:20px 24px; border-bottom:1px solid var(--border-glass); display:flex; justify-content:space-between; align-items:center;">
                             <h2 style="margin:0; font-size:1.1rem; font-weight:700;">Recent Quotations</h2>
                             <div class="table-actions">
-                                <input type="text" id="qt-search" placeholder="Search quotations..." class="search-input" onkeyup="filterQuotationTable()">
+                                <div class="search-box">
+                                    <span class="search-icon">🔍</span>
+                                    <input type="text" id="qt-search" placeholder="Search quotations..." onkeyup="filterQuotationTable()">
+                                </div>
                             </div>
                         </div>
                         <div class="table-container" style="border:none; border-radius:0; box-shadow:none;">
@@ -448,6 +452,7 @@
                                 <thead>
                                     <tr>
                                         <th>Q Date</th>
+                                        <th>Status</th>
                                         <th>ID</th>
                                         <th>Quotation No.</th>
                                         <th>Item Name</th>
@@ -460,7 +465,6 @@
                                         <th style="text-align:right">Com</th>
                                         <th style="text-align:right">OP</th>
                                         <th style="text-align:right">Amount</th>
-                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody id="qt-recent-tbody">
@@ -505,6 +509,6 @@
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
     <!-- Custom Scripts -->
-    <script src="app.js?v=53"></script>
+    <script src="app.js?v=54"></script>
 </body>
 </html>
