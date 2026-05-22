@@ -1147,7 +1147,11 @@ async function fetchQuotationData() {
             status = '7. PO';
           }
           
-          allQuotations.push({ id, status, customer, amount, prDate, qDate, qMonth, qYear, brand, itemName, source: sheetSource });
+          const margin = r[colMap['Margin']] || '';
+          const com = r[colMap['Com']] || '';
+          const op = r[colMap['OP']] || '';
+
+          allQuotations.push({ id, status, customer, amount, prDate, qDate, qMonth, qYear, brand, itemName, source: sheetSource, margin, com, op });
         }
       });
     }
@@ -1353,7 +1357,10 @@ function renderQuotationTable() {
       <td style="font-weight:600">${q.customer}</td>
       <td style="font-weight:600; color:var(--text-secondary)">${q.brand}</td>
       <td style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${q.itemName}">${q.itemName}</td>
-      <td style="font-weight:bold; color:var(--text-primary)">${fmt(q.amount)}</td>
+      <td style="text-align:right; font-weight:600; color:var(--text-secondary)">${q.margin}</td>
+      <td style="text-align:right; font-weight:600; color:var(--text-secondary)">${q.com}</td>
+      <td style="text-align:right; font-weight:600; color:var(--text-secondary)">${q.op}</td>
+      <td style="text-align:right; font-weight:bold; color:var(--text-primary)">${fmt(q.amount)}</td>
       <td><span class="status-badge ${getStatusClass(q.status)}">${q.status}</span></td>
     </tr>
   `).join('');

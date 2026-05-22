@@ -523,15 +523,19 @@ body::before {
 .btn-month-nav:hover { background:var(--bg-glass-hover); color:var(--text-primary); }
 
 .btn-top-sync {
-    display: flex; align-items: center; gap: 6px; padding: 7px 16px; margin-right: 12px;
-    border-radius: 10px; background: linear-gradient(135deg, var(--accent-primary), #3b82f6);
-    border: none; color: #ffffff; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25); font-family: var(--font-stack);
+    display: flex; align-items: center; gap: 6px; 
+    padding: 5px 12px; margin-right: 8px;
+    background: var(--bg-secondary); 
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-sm); 
+    color: var(--text-primary); cursor: pointer; 
+    transition: all var(--transition-fast);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    font-family: var(--font-stack);
 }
 .btn-top-sync:hover { 
-    transform: translateY(-2px); 
-    box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4); 
-    background: linear-gradient(135deg, #3b82f6, var(--accent-primary));
+    background: var(--bg-glass-hover); 
+    color: var(--text-primary);
 }
 
 .header-badge {
