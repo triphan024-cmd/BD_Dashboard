@@ -946,58 +946,65 @@ function renderAnalytics() {
 
 function renderPendingPOsChart() {
   const c = getChartColors();
-  if(charts.ivPendingPOs) charts.ivPendingPOs.destroy();
-  const canvas = document.getElementById('chart-iv-pending-pos');
-  if(!canvas) return;
+  if(charts.ivPendingPOsCount) charts.ivPendingPOsCount.destroy();
+  if(charts.ivPendingPOsAmount) charts.ivPendingPOsAmount.destroy();
+  const canvasCount = document.getElementById('chart-iv-pending-pos-count');
+  const canvasAmount = document.getElementById('chart-iv-pending-pos-amount');
+  if(!canvasCount || !canvasAmount) return;
 
-  const pendingData = allData.filter(r => {
-    if (!isValidPO(r)) return false;
-    if (CONFIG.SALES_FILTER !== 'All' && r[COLS.SALES] !== CONFIG.SALES_FILTER) return false;
+  const yearData = getSOYearData(currentYear);
+  const pendingData = yearData.filter(r => {
     const st = (r[COLS.STATUS] || '').toLowerCase();
     return !st.includes('payment') && !st.includes('completed');
   });
 
-  const mapStatus = {};
+  const mapCount = {};
+  const mapAmount = {};
   pendingData.forEach(r => {
     let st = r[COLS.STATUS] || 'N/A';
-    mapStatus[st] = (mapStatus[st] || 0) + 1;
+    mapCount[st] = (mapCount[st] || 0) + 1;
+    mapAmount[st] = (mapAmount[st] || 0) + num(r[COLS.REVENUE]);
   });
 
-  const sortedKeys = Object.keys(mapStatus).sort((a,b) => a.localeCompare(b));
-  const counts = sortedKeys.map(k => mapStatus[k]);
+  const sortedKeys = Object.keys(mapCount).sort((a,b) => a.localeCompare(b));
+  const counts = sortedKeys.map(k => mapCount[k]);
+  const amounts = sortedKeys.map(k => mapAmount[k]);
   const bgColors = sortedKeys.map(k => {
     const prefixMatch = k.match(/^\d+/);
     return prefixMatch && statusColors[prefixMatch[0]] ? statusColors[prefixMatch[0]] : c.accent;
   });
 
-  charts.ivPendingPOs = new Chart(canvas, {
+  const commonOptions = {
+    ...chartDefaults(),
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { display: false, grid: { display: false } },
+      x: { grid: { display: false }, ticks: { color: c.text, font: { family: 'var(--font-stack)', size: 11 } } }
+    }
+  };
+
+  charts.ivPendingPOsCount = new Chart(canvasCount, {
     type: 'bar',
     data: {
       labels: sortedKeys,
-      datasets: [{
-        label: 'Pending POs',
-        data: counts,
-        backgroundColor: bgColors,
-        borderRadius: 6,
-        borderWidth: 0
-      }]
+      datasets: [{ data: counts, backgroundColor: bgColors, borderRadius: 6, borderWidth: 0 }]
     },
     options: {
-      ...chartDefaults(),
-      plugins: {
-        legend: { display: false },
-        datalabels: {
-          color: c.text,
-          anchor: 'end',
-          align: 'top',
-          font: { weight: 'bold' },
-          formatter: (v) => fmt(v)
-        }
-      },
-      scales: {
-        y: { display: false, grid: { display: false } },
-        x: { grid: { display: false }, ticks: { color: c.text, font: { family: 'var(--font-stack)', size: 11 } } }
-      }
+      ...commonOptions,
+      plugins: { ...commonOptions.plugins, datalabels: { color: c.text, anchor: 'end', align: 'top', font: { weight: 'bold' }, formatter: (v) => fmt(v) } }
+    },
+    plugins: [ChartDataLabels]
+  });
+
+  charts.ivPendingPOsAmount = new Chart(canvasAmount, {
+    type: 'bar',
+    data: {
+      labels: sortedKeys,
+      datasets: [{ data: amounts, backgroundColor: bgColors, borderRadius: 6, borderWidth: 0 }]
+    },
+    options: {
+      ...commonOptions,
+      plugins: { ...commonOptions.plugins, datalabels: { color: c.text, anchor: 'end', align: 'top', font: { weight: 'bold', size: 10 }, formatter: (v) => shortFmt(v) } }
     },
     plugins: [ChartDataLabels]
   });
