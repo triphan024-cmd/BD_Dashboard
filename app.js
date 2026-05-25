@@ -987,23 +987,30 @@ function renderPendingPOsChart() {
     }
   });
 
-  const pastelColors = ['#A8E6CF', '#DCEDC1', '#FFD3B6', '#FFAAA5', '#FF8B94', '#9D94FF', '#B2D8D8', '#FDFD96', '#FFB3BA', '#BAE1FF'];
+  // Instead of pastelColors, we use statusColors mapping
+  const datasetsCount = sortedStatuses.map((st, i) => {
+    const prefixMatch = st.match(/^\d+/);
+    const color = prefixMatch && statusColors[prefixMatch[0]] ? statusColors[prefixMatch[0]] : c.accent;
+    return {
+      label: st,
+      data: mapCount[st],
+      backgroundColor: color,
+      borderWidth: 0,
+      borderRadius: 2
+    };
+  });
 
-  const datasetsCount = sortedStatuses.map((st, i) => ({
-    label: st,
-    data: mapCount[st],
-    backgroundColor: pastelColors[i % pastelColors.length],
-    borderWidth: 0,
-    borderRadius: 2
-  }));
-
-  const datasetsAmount = sortedStatuses.map((st, i) => ({
-    label: st,
-    data: mapAmount[st],
-    backgroundColor: pastelColors[i % pastelColors.length],
-    borderWidth: 0,
-    borderRadius: 2
-  }));
+  const datasetsAmount = sortedStatuses.map((st, i) => {
+    const prefixMatch = st.match(/^\d+/);
+    const color = prefixMatch && statusColors[prefixMatch[0]] ? statusColors[prefixMatch[0]] : c.accent;
+    return {
+      label: st,
+      data: mapAmount[st],
+      backgroundColor: color,
+      borderWidth: 0,
+      borderRadius: 2
+    };
+  });
 
   const commonOptions = {
     ...chartDefaults(),
