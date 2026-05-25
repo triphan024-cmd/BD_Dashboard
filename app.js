@@ -43,6 +43,11 @@ const DISPLAY_COLS = ['ID_SO','STATUS','SO_DATE','CUSTOMER','PO_NO','NAME','QTY'
 
 let allData = [], allQuotations = [], charts = {}, currentMonth, currentYear, currentView = 'quotation', currentQtSource = 'QT26';
 
+const statusColors = {
+  '1': '#8e8e93', '2': '#007aff', '3': '#069494', '4': '#af52de',
+  '5': '#ff3b30', '6': '#34c759', '7': '#ff9f0a', '8': '#ffcc00'
+};
+
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
   currentMonth = new Date().getMonth() + 1;
@@ -754,12 +759,7 @@ function renderStatusList() {
     if(st.toLowerCase().includes('deleted') || st.toLowerCase().includes('cancel')) return;
     map[st] = (map[st] || 0) + num(r[COLS.AMOUNT]);
   });
-  
-  const statusColors = {
-    '1': '#8e8e93',
-    '2': '#007aff', '3': '#069494', '4': '#af52de',
-    '5': '#ff3b30', '6': '#34c759', '7': '#ff9f0a', '8': '#ffcc00'
-  };
+
 
   const sorted = Object.entries(map).sort((a,b) => a[0].localeCompare(b[0]));
   document.getElementById('po-status-list').innerHTML = sorted.map(([name,val],i) => {
@@ -1375,12 +1375,7 @@ function renderQuotationCharts() {
   const hcColors = ['#007aff', '#34c759', '#ff9f0a', '#ff3b30', '#5ac8fa', '#af52de', '#ffcc00', '#ff2d55'];
 
   const qtPieColors = ['#A8E6CF', '#DCEDC1', '#FFD3B6', '#FFAAA5', '#FF8B94', '#9D94FF'];
-  
-  const statusColors = {
-    '1': '#8e8e93',
-    '2': '#007aff', '3': '#069494', '4': '#af52de',
-    '5': '#ff3b30', '6': '#34c759', '7': '#ff9f0a', '8': '#ffcc00'
-  };
+
 
   const hcDataSec = sortedSecondary.map((x, i) => ({
     name: x[0], y: x[1], color: qtPieColors[i % qtPieColors.length]
