@@ -952,8 +952,14 @@ function renderPendingPOsChart() {
   const canvasAmount = document.getElementById('chart-iv-pending-pos-amount');
   if(!canvasCount || !canvasAmount) return;
 
-  const yearData = getSOYearData(currentYear);
-  const pendingData = yearData.filter(r => {
+  const pendingData = allData.filter(r => {
+    if (!isValidPO(r)) return false;
+    if (CONFIG.SALES_FILTER !== 'All' && r[COLS.SALES] !== CONFIG.SALES_FILTER) return false;
+    
+    const dateStr = (r[COLS.SO_DATE] || '').split(' ')[0];
+    const parsed = parseSODate(dateStr);
+    if (!parsed || parsed.year !== currentYear) return false;
+
     const st = (r[COLS.STATUS] || '').toLowerCase();
     return !st.includes('payment') && !st.includes('completed');
   });
