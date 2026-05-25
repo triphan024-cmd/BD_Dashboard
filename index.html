@@ -143,7 +143,7 @@
                     <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-purple"><span class="kpi-icon">📊</span></div><div class="kpi-info"><span class="kpi-label">Avg / Order</span><span class="kpi-value" id="kpi-so-avg">—</span></div><div class="kpi-trend" id="kpi-so-avg-trend"></div></div>
                 </div>
                 <div class="charts-grid-50">
-                    <div class="chart-card glass-card"><div class="chart-header"><h3>PO Amount by Month</h3><div class="chart-actions"><button class="chart-btn-so" data-chart-type="bar">Bar</button><button class="chart-btn-so active" data-chart-type="line">Line</button></div></div><div class="chart-body"><canvas id="chart-so-amount"></canvas></div></div>
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>PO Amount by Month</h3><div class="chart-actions"><span id="chart-total-so-amount" style="font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); margin-right: 10px; align-self: center;"></span><button class="chart-btn-so" data-chart-type="bar">Bar</button><button class="chart-btn-so active" data-chart-type="line">Line</button></div></div><div class="chart-body"><canvas id="chart-so-amount"></canvas></div></div>
                     <div class="chart-card glass-card"><div class="chart-header"><h3>Monthly PO</h3><span class="chart-sub">SO Date</span></div><div class="chart-body"><canvas id="chart-so-monthly"></canvas></div></div>
                 </div>
                 <div class="charts-grid-50">
@@ -186,16 +186,28 @@
                     <div class="kpi-card glass-card"><div class="kpi-icon-wrapper accent-green"><span class="kpi-icon">🏢</span></div><div class="kpi-info"><span class="kpi-label">Customers</span><span class="kpi-value" id="kpi-iv-customers">—</span></div><div class="kpi-trend" id="kpi-iv-customers-trend"></div></div>
                 </div>
                 <div class="charts-grid-50">
-                    <div class="chart-card glass-card"><div class="chart-header"><h3>Monthly Revenue</h3><div class="chart-actions"><button class="chart-btn" data-chart-type="bar">Bar</button><button class="chart-btn active" data-chart-type="line">Line</button></div></div><div class="chart-body"><canvas id="chart-revenue-monthly"></canvas></div></div>
+                    <div class="chart-card glass-card"><div class="chart-header"><h3>Monthly Revenue</h3><div class="chart-actions"><span id="chart-total-revenue" style="font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); margin-right: 10px; align-self: center;"></span><button class="chart-btn" data-chart-type="bar">Bar</button><button class="chart-btn active" data-chart-type="line">Line</button></div></div><div class="chart-body"><canvas id="chart-revenue-monthly"></canvas></div></div>
                     <div class="chart-card glass-card"><div class="chart-header"><h3>Invoiced POs by Month</h3></div><div class="chart-body"><canvas id="chart-po-count"></canvas></div></div>
                 </div>
                 <div class="charts-grid-50" style="margin-top: 20px; margin-bottom: 20px;">
                     <div class="chart-card glass-card">
-                        <div class="chart-header"><h3>Pending POs (Amount)</h3><span class="chart-sub">Active Value (Current Year)</span></div>
+                        <div class="chart-header">
+                            <h3>Pending POs (Amount)</h3>
+                            <div style="text-align: right; line-height: 1.2;">
+                                <span class="chart-sub">Active Value 2026</span><br>
+                                <span id="total-pending-amount" style="font-size: 1rem; font-weight: 700; color: var(--accent-primary);"></span>
+                            </div>
+                        </div>
                         <div class="chart-body"><canvas id="chart-iv-pending-pos-amount" style="min-height: 300px;"></canvas></div>
                     </div>
                     <div class="chart-card glass-card">
-                        <div class="chart-header"><h3>Pending POs (Count)</h3><span class="chart-sub">Active Orders (Current Year)</span></div>
+                        <div class="chart-header">
+                            <h3>Pending POs (Count)</h3>
+                            <div style="text-align: right; line-height: 1.2;">
+                                <span class="chart-sub">Active Orders 2026</span><br>
+                                <span id="total-pending-count" style="font-size: 1rem; font-weight: 700; color: var(--accent-primary);"></span>
+                            </div>
+                        </div>
                         <div class="chart-body"><canvas id="chart-iv-pending-pos-count" style="min-height: 300px;"></canvas></div>
                     </div>
                 </div>
@@ -332,6 +344,7 @@
                             <div class="chart-header">
                                 <h3>PO Amount by Month</h3>
                                 <div class="chart-actions">
+                                    <span id="chart-total-po-count" style="font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); margin-right: 10px; align-self: center;"></span>
                                     <button class="chart-btn-po active" data-chart-type="bar">Bar</button>
                                     <button class="chart-btn-po" data-chart-type="line">Line</button>
                                 </div>
@@ -404,6 +417,7 @@
                             <div class="chart-header">
                                 <h3>Quotation Value by Month</h3>
                                 <div class="chart-actions">
+                                    <span id="chart-total-qt-amount" style="font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); margin-right: 10px; align-self: center;"></span>
                                     <button class="chart-btn-qt" data-chart-type="bar">Bar</button>
                                     <button class="chart-btn-qt active" data-chart-type="line">Line</button>
                                 </div>
@@ -529,6 +543,6 @@
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
     <!-- Custom Scripts -->
-    <script src="app.js?v=65"></script>
+    <script src="app.js?v=66"></script>
 </body>
 </html>

@@ -362,6 +362,9 @@ function renderSOAmountChart(type) {
   const c = getChartColors();
   const months = getLast12Months();
   const data = months.map(({m,y})=>getSOMonthData(m,y).reduce((s,r)=>s+num(r[COLS.AMOUNT]),0));
+  const elTotal = document.getElementById('chart-total-so-amount');
+  if(elTotal) elTotal.textContent = fmtCurrency(data.reduce((a,b)=>a+b,0));
+
   if(charts.soAmount) charts.soAmount.destroy();
   charts.soAmount = new Chart(document.getElementById('chart-so-amount'), {
     type, data:{ labels:months.map(x=>x.label), datasets:[{
@@ -735,6 +738,10 @@ function renderRevenueChart(type) {
   const c = getChartColors();
   const months = getLast12Months();
   const data = months.map(({m,y}) => getMonthData(m,y).reduce((s,r)=>s+num(r[COLS.REVENUE]),0));
+  const totalRev = currentData.reduce((a, b) => a + b, 0);
+  const elTotal = document.getElementById('chart-total-revenue');
+  if(elTotal) elTotal.textContent = fmtCurrency(totalRev);
+
   if(charts.revenue) charts.revenue.destroy();
   charts.revenue = new Chart(document.getElementById('chart-revenue-monthly'), {
     type, data: {
@@ -773,6 +780,10 @@ function renderPOCountChart() {
   const c = getChartColors();
   const months = getLast12Months();
   const data = months.map(({m,y}) => getMonthData(m,y).length);
+  const totalCount = currentData.reduce((a, b) => a + b, 0);
+  const elTotal = document.getElementById('chart-total-po-count');
+  if(elTotal) elTotal.textContent = fmt(totalCount);
+
   if(charts.poCount) charts.poCount.destroy();
   charts.poCount = new Chart(document.getElementById('chart-po-count'), {
     type: 'bar', data: {
@@ -986,6 +997,13 @@ function renderPendingPOsChart() {
       mapAmount[st][mIdx] += num(r[COLS.REVENUE]);
     }
   });
+
+  const totalCount = sortedStatuses.reduce((acc, st) => acc + mapCount[st].reduce((a, b) => a + b, 0), 0);
+  const totalAmount = sortedStatuses.reduce((acc, st) => acc + mapAmount[st].reduce((a, b) => a + b, 0), 0);
+  const elTotalCount = document.getElementById('total-pending-count');
+  if (elTotalCount) elTotalCount.textContent = fmt(totalCount);
+  const elTotalAmount = document.getElementById('total-pending-amount');
+  if (elTotalAmount) elTotalAmount.textContent = fmtCurrency(totalAmount);
 
   // Instead of pastelColors, we use statusColors mapping
   const datasetsCount = sortedStatuses.map((st, i) => {
@@ -1382,6 +1400,9 @@ function renderQuotationCharts() {
   const data = months.map(({m,y}) => getQTMonthData(m,y).reduce((s,q) => s + q.amount, 0));
   const dataItems = months.map(({m,y}) => getQTMonthData(m,y).length);
   
+  const elTotal = document.getElementById('chart-total-qt-amount');
+  if(elTotal) elTotal.textContent = fmtCurrency(data.reduce((a,b)=>a+b,0));
+
   if(charts.qtMonthly) charts.qtMonthly.destroy();
   const canvasMonthly = document.getElementById('chart-qt-monthly');
   if (canvasMonthly) {
