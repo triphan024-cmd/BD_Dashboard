@@ -738,7 +738,7 @@ function renderRevenueChart(type) {
   const c = getChartColors();
   const months = getLast12Months();
   const data = months.map(({m,y}) => getMonthData(m,y).reduce((s,r)=>s+num(r[COLS.REVENUE]),0));
-  const totalRev = currentData.reduce((a, b) => a + b, 0);
+  const totalRev = data.reduce((a, b) => a + b, 0);
   const elTotal = document.getElementById('chart-total-revenue');
   if(elTotal) elTotal.textContent = fmtCurrency(totalRev);
 
@@ -780,7 +780,7 @@ function renderPOCountChart() {
   const c = getChartColors();
   const months = getLast12Months();
   const data = months.map(({m,y}) => getMonthData(m,y).length);
-  const totalCount = currentData.reduce((a, b) => a + b, 0);
+  const totalCount = data.reduce((a, b) => a + b, 0);
   const elTotal = document.getElementById('chart-total-po-count');
   if(elTotal) elTotal.textContent = fmt(totalCount);
 
