@@ -1436,14 +1436,12 @@ function renderQuotationCharts() {
     try { charts.qtSecondary.destroy(); } catch(e){}
   }
   charts.qtSecondary = Highcharts.chart('chart-qt-secondary', {
-    chart: { type: 'pie', backgroundColor: 'transparent', margin: [0, 0, 0, 0], options3d: { enabled: true, alpha: 45, beta: 0 } },
+    chart: { type: 'pie', backgroundColor: 'transparent', options3d: { enabled: true, alpha: 45, beta: 0 } },
     title: { text: null },
     credits: { enabled: false },
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${fmtCurrency(this.point.y)} (${this.point.percentage.toFixed(1)}%)</b>`; } },
     plotOptions: { 
       pie: { 
-        size: '50%',
-        center: ['50%', '35%'],
         allowPointSelect: true, 
         cursor: 'pointer', 
         depth: 35, 
@@ -1483,14 +1481,12 @@ function renderQuotationCharts() {
     try { charts.qtStatus.destroy(); } catch(e){}
   }
   charts.qtStatus = Highcharts.chart('chart-qt-status', {
-    chart: { type: 'pie', backgroundColor: 'transparent', margin: [0, 0, 0, 0], options3d: { enabled: true, alpha: 45, beta: 0 } },
+    chart: { type: 'pie', backgroundColor: 'transparent', options3d: { enabled: true, alpha: 45, beta: 0 } },
     title: { text: null },
     credits: { enabled: false },
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${this.point.y} (${this.point.percentage.toFixed(1)}%)</b>`; } },
     plotOptions: { 
       pie: { 
-        size: '50%',
-        center: ['50%', '35%'],
         allowPointSelect: true, 
         cursor: 'pointer', 
         depth: 35, 
