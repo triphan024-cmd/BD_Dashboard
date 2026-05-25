@@ -311,6 +311,7 @@ function renderAll() {
   renderDetailTable();
   renderAnalytics();
   if (typeof renderReportBoard === 'function') renderReportBoard();
+  if (typeof renderQuotationSummary === 'function') renderQuotationSummary();
   if (typeof renderQuotationKPIs === 'function') renderQuotationKPIs();
   if (typeof renderQuotationCharts === 'function') renderQuotationCharts();
   if (typeof renderQuotationTable === 'function') renderQuotationTable();
@@ -1214,7 +1215,7 @@ function getQTMonthData(m, y) {
   return allQuotations.filter(q => q.qMonth === m && q.qYear === y && q.source === currentQtSource);
 }
 
-function renderQuotation() {
+function renderQuotationSummary() {
   const sources = [
     { id: 'QT26', elId: 'amt-qt26' },
     { id: 'QT KL', elId: 'amt-qtkl' },
@@ -1226,7 +1227,10 @@ function renderQuotation() {
     const el = document.getElementById(src.elId);
     if(el) el.textContent = shortFmt(sum);
   });
+}
 
+function renderQuotation() {
+  renderQuotationSummary();
   renderQuotationKPIs();
   renderQuotationCharts();
   renderQuotationTable();
@@ -1332,8 +1336,8 @@ function renderQuotationCharts() {
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${fmtCurrency(this.point.y)} (${this.point.percentage.toFixed(1)}%)</b>`; } },
     plotOptions: { 
       pie: { 
-        size: '60%',
-        center: ['50%', '40%'],
+        size: '50%',
+        center: ['50%', '35%'],
         allowPointSelect: true, 
         cursor: 'pointer', 
         depth: 35, 
@@ -1379,8 +1383,8 @@ function renderQuotationCharts() {
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${this.point.y} (${this.point.percentage.toFixed(1)}%)</b>`; } },
     plotOptions: { 
       pie: { 
-        size: '60%',
-        center: ['50%', '40%'],
+        size: '50%',
+        center: ['50%', '35%'],
         allowPointSelect: true, 
         cursor: 'pointer', 
         depth: 35, 
@@ -1442,7 +1446,7 @@ function renderQuotationCharts() {
         ...chartDefaults(),
         indexAxis: 'y', // horizontal bar
         layout: {
-          padding: { right: 60, left: 15 } // Prevent labels from being cut off
+          padding: { right: 60, left: 30 } // Prevent labels from being cut off
         },
         plugins: {
           legend: { display: false },
