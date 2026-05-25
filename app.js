@@ -315,6 +315,7 @@ function renderAll() {
   if (typeof renderQuotationKPIs === 'function') renderQuotationKPIs();
   if (typeof renderQuotationCharts === 'function') renderQuotationCharts();
   if (typeof renderQuotationTable === 'function') renderQuotationTable();
+  if (typeof renderPendingPOsChart === 'function') renderPendingPOsChart();
 }
 
 // ===== SECTION 1: PO NHẬN ĐƯỢC (SO Date) =====
@@ -943,6 +944,64 @@ function renderAnalytics() {
   }
 }
 
+function renderPendingPOsChart() {
+  if(charts.ivPendingPOs) charts.ivPendingPOs.destroy();
+  const canvas = document.getElementById('chart-iv-pending-pos');
+  if(!canvas) return;
+
+  const pendingData = allData.filter(r => {
+    if (!isValidPO(r)) return false;
+    if (CONFIG.SALES_FILTER !== 'All' && r[COLS.SALES] !== CONFIG.SALES_FILTER) return false;
+    const st = (r[COLS.STATUS] || '').toLowerCase();
+    return !st.includes('payment') && !st.includes('completed');
+  });
+
+  const mapStatus = {};
+  pendingData.forEach(r => {
+    let st = r[COLS.STATUS] || 'N/A';
+    mapStatus[st] = (mapStatus[st] || 0) + 1;
+  });
+
+  const sortedKeys = Object.keys(mapStatus).sort((a,b) => a.localeCompare(b));
+  const counts = sortedKeys.map(k => mapStatus[k]);
+  const bgColors = sortedKeys.map(k => {
+    const prefixMatch = k.match(/^\d+/);
+    return prefixMatch && statusColors[prefixMatch[0]] ? statusColors[prefixMatch[0]] : c.accent;
+  });
+
+  charts.ivPendingPOs = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: sortedKeys,
+      datasets: [{
+        label: 'Pending POs',
+        data: counts,
+        backgroundColor: bgColors,
+        borderRadius: 6,
+        borderWidth: 0
+      }]
+    },
+    options: {
+      ...chartDefaults(),
+      plugins: {
+        legend: { display: false },
+        datalabels: {
+          color: c.text,
+          anchor: 'end',
+          align: 'top',
+          font: { weight: 'bold' },
+          formatter: (v) => fmt(v)
+        }
+      },
+      scales: {
+        y: { display: false, grid: { display: false } },
+        x: { grid: { display: false }, ticks: { color: c.text, font: { family: 'var(--font-stack)', size: 11 } } }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
+
 // ===== REPORT BOARD =====
 let reportDataList = [];
 
@@ -1330,7 +1389,7 @@ function renderQuotationCharts() {
     try { charts.qtSecondary.destroy(); } catch(e){}
   }
   charts.qtSecondary = Highcharts.chart('chart-qt-secondary', {
-    chart: { type: 'pie', backgroundColor: 'transparent', options3d: { enabled: true, alpha: 45, beta: 0 } },
+    chart: { type: 'pie', backgroundColor: 'transparent', margin: [0, 0, 0, 0], options3d: { enabled: true, alpha: 45, beta: 0 } },
     title: { text: null },
     credits: { enabled: false },
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${fmtCurrency(this.point.y)} (${this.point.percentage.toFixed(1)}%)</b>`; } },
@@ -1377,7 +1436,7 @@ function renderQuotationCharts() {
     try { charts.qtStatus.destroy(); } catch(e){}
   }
   charts.qtStatus = Highcharts.chart('chart-qt-status', {
-    chart: { type: 'pie', backgroundColor: 'transparent', options3d: { enabled: true, alpha: 45, beta: 0 } },
+    chart: { type: 'pie', backgroundColor: 'transparent', margin: [0, 0, 0, 0], options3d: { enabled: true, alpha: 45, beta: 0 } },
     title: { text: null },
     credits: { enabled: false },
     tooltip: { formatter: function() { return `<b>${this.point.name}</b><br/>${this.series.name}: <b>${this.point.y} (${this.point.percentage.toFixed(1)}%)</b>`; } },
@@ -1446,7 +1505,7 @@ function renderQuotationCharts() {
         ...chartDefaults(),
         indexAxis: 'y', // horizontal bar
         layout: {
-          padding: { right: 60, left: 30 } // Prevent labels from being cut off
+          padding: { right: 60, left: 100 } // Prevent labels from being cut off
         },
         plugins: {
           legend: { display: false },

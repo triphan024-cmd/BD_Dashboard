@@ -213,6 +213,12 @@
                     <div class="chart-card glass-card"><div class="chart-header"><h3>Monthly Debt (Công Nợ)</h3><span class="chart-sub">Unpaid Balance</span></div><div class="chart-body"><canvas id="chart-debt-monthly"></canvas></div></div>
                     <div class="chart-card glass-card"><div class="chart-header"><h3>Pending Debt Detail</h3><span class="chart-sub">By Customer</span></div><div class="chart-body"><div id="pending-debt-list" class="ranking-list"></div></div></div>
                 </div>
+                <div class="charts-grid-100" style="margin-top: 20px;">
+                    <div class="chart-card glass-card">
+                        <div class="chart-header"><h3>Pending POs (Active Orders)</h3><span class="chart-sub">Excluding Completed, Payment, Cancel, Deleted</span></div>
+                        <div class="chart-body"><canvas id="chart-iv-pending-pos" style="min-height: 250px;"></canvas></div>
+                    </div>
+                </div>
             </section>
 
             <!-- View: Details -->
@@ -515,6 +521,6 @@
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
     <!-- Custom Scripts -->
-    <script src="app.js?v=56"></script>
+    <script src="app.js?v=57"></script>
 </body>
 </html>
