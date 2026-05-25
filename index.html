@@ -235,15 +235,19 @@
                             </div>
                         </div>
                     </div>
-                </div>
                 <div class="charts-grid-100" style="margin-top: 20px; margin-bottom: 20px;">
                     <div class="chart-card glass-card">
                         <div class="chart-header">
-                            <h3>Avg Margin % by Customer</h3>
+                            <h3>Margin % by Month</h3>
                             <span class="chart-sub">Top 10 Customers by Revenue (2026)</span>
                         </div>
                         <div class="chart-body">
-                            <canvas id="chart-customer-margin" style="min-height: 350px;"></canvas>
+                            <div class="table-scroll">
+                                <table class="data-table" id="table-customer-margin">
+                                    <thead id="margin-table-head"></thead>
+                                    <tbody id="margin-table-body"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -555,7 +559,7 @@
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
     <!-- Custom Scripts -->
-    <script src="app.js?v=71"></script>
+    <script src="app.js?v=72"></script>
 </body>
 </html>
 
