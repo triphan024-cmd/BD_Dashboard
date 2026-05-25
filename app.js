@@ -209,28 +209,32 @@ async function fetchData() {
     if (loader) loader.style.display = 'flex';
 
     const urlPO = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(CONFIG.SHEET_NAME)}?key=${CONFIG.API_KEY}`;
+    const urlQT = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.QT_SHEET_ID}/values:batchGet?ranges=QT26!A1:AZ&ranges=${encodeURIComponent("'QT KL'!A1:AZ")}&ranges=${encodeURIComponent("'QT SS'!A1:AZ")}&key=${CONFIG.API_KEY}`;
     
+    // Concurrent fetches
+    const poPromise = fetch(urlPO);
+    const qtPromise = fetch(urlQT).then(r => r.ok ? r.json() : null).catch(() => null);
+
     // Async fetching without blocking UI
     if (typeof fetchReportData === 'function') {
-      fetchReportData().then(() => { if (typeof renderReportBoard === 'function') renderReportBoard(); });
-    }
-    if (typeof fetchQuotationData === 'function') {
-      fetchQuotationData().then(() => {
-        if (typeof renderQuotationSummary === 'function') renderQuotationSummary();
-        if (typeof renderQuotationCharts === 'function') renderQuotationCharts();
-        if (typeof renderQuotationTable === 'function') renderQuotationTable();
-      });
+      fetchReportData().then(() => { if (typeof renderReportBoard === 'function') renderReportBoard(); }).catch(e => console.error(e));
     }
 
-    const resPO = await fetch(urlPO);
+    const resPO = await poPromise;
 
     if (!resPO.ok) throw new Error(`API Error: ${resPO.status}`);
-    const json = await resPO.json();
-    const rows = json.values || [];
+    const poJson = await resPO.json();
+    const rows = poJson.values || [];
     if (rows.length < 3) throw new Error('No data found');
     let headerIdx = rows.findIndex(r => r.some(c => c && c.toString().trim() === 'ID SO'));
     if (headerIdx === -1) headerIdx = 1; 
     allData = rows.slice(headerIdx + 1).filter(r => (r[COLS.SALES]||'').trim() === CONFIG.SALES_FILTER);
+
+    // Parse Quotation data AFTER PO data so we can check for Won status correctly
+    if (typeof fetchQuotationData === 'function') {
+      const qtJson = await qtPromise;
+      if (qtJson) await fetchQuotationData(qtJson);
+    }
 
     document.getElementById('loading-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
@@ -1045,6 +1049,9 @@ function renderPendingPOsChart() {
     ...chartDefaults(),
     interaction: { mode: 'index', intersect: false },
     plugins: {
+      tooltip: {
+        filter: function(tooltipItem) { return tooltipItem.raw > 0; }
+      },
       legend: { 
         display: true, position: 'bottom', 
         labels: { color: c.text, font: { family: 'var(--font-stack)', size: 10 }, usePointStyle: true, boxWidth: 8 } 
@@ -1213,12 +1220,15 @@ function renderReportBoard() {
 }
 
 // ===== QUOTATION DATA =====
-async function fetchQuotationData() {
+async function fetchQuotationData(prefetchedJson) {
   try {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.QT_SHEET_ID}/values:batchGet?ranges=QT26!A1:AZ&ranges=${encodeURIComponent("'QT KL'!A1:AZ")}&ranges=${encodeURIComponent("'QT SS'!A1:AZ")}&key=${CONFIG.API_KEY}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`QT API Error: ${res.status}`);
-    const json = await res.json();
+    let json = prefetchedJson;
+    if (!json) {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.QT_SHEET_ID}/values:batchGet?ranges=QT26!A1:AZ&ranges=${encodeURIComponent("'QT KL'!A1:AZ")}&ranges=${encodeURIComponent("'QT SS'!A1:AZ")}&key=${CONFIG.API_KEY}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`QT API Error: ${res.status}`);
+      json = await res.json();
+    }
     allQuotations = [];
     
     let masterColMap = null;
@@ -1372,10 +1382,10 @@ function renderQuotationKPIs() {
   const count = md.length;
   const amount = md.reduce((s, q) => s + q.amount, 0);
   
-  const wonCount = md.filter(q => q.status === '7. PO' || q.status.toLowerCase().includes('win') || q.status.toLowerCase().includes('po')).length;
+  const wonCount = md.filter(q => String(q.status||'').toLowerCase().includes('win') || String(q.status||'').toLowerCase().includes('po')).length;
   const winRate = count > 0 ? ((wonCount / count) * 100).toFixed(1) : 0;
   
-  const pendingAmount = md.filter(q => q.status.toLowerCase().includes('quoted') || q.status.toLowerCase().includes('pending')).reduce((s, q) => s + q.amount, 0);
+  const pendingAmount = md.filter(q => String(q.status||'').toLowerCase().includes('quoted') || String(q.status||'').toLowerCase().includes('pending')).reduce((s, q) => s + q.amount, 0);
 
   const elCount = document.getElementById('kpi-qt-count');
   if(elCount) elCount.textContent = fmt(count);
