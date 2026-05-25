@@ -324,6 +324,7 @@ function renderAll() {
   renderMonthlyDebtChart();
   renderPendingDebtList();
   renderTopCustomersIV();
+  if (typeof renderCustomerMarginChart === 'function') renderCustomerMarginChart();
   renderDetailTable();
   renderAnalytics();
   if (typeof renderReportBoard === 'function') renderReportBoard();
@@ -583,6 +584,75 @@ function renderTopCustomersIV() {
        </div>
      </div>`
   ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
+}
+
+function renderCustomerMarginChart() {
+  const md2026 = allData.filter(r => isValidPO(r) && r[COLS.IV_YEAR] === '2026');
+  
+  const mapCustomer = {};
+  md2026.forEach(r => {
+    const c = r[COLS.CUSTOMER] || 'N/A';
+    if (!mapCustomer[c]) mapCustomer[c] = { revenue: 0, profit: 0 };
+    mapCustomer[c].revenue += num(r[COLS.REVENUE]);
+    mapCustomer[c].profit += num(r[COLS.PROFIT]);
+  });
+  
+  const topCustomers = Object.entries(mapCustomer)
+    .sort((a,b) => b[1].revenue - a[1].revenue)
+    .slice(0, 10);
+    
+  const labels = topCustomers.map(x => x[0]);
+  const data = topCustomers.map(x => {
+    if (x[1].revenue === 0) return 0;
+    return parseFloat(((x[1].profit / x[1].revenue) * 100).toFixed(1));
+  });
+
+  const c = getChartColors();
+  
+  if (charts.customerMargin) charts.customerMargin.destroy();
+  const canvas = document.getElementById('chart-customer-margin');
+  if (!canvas) return;
+
+  charts.customerMargin = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Avg Margin %',
+        data: data,
+        backgroundColor: c.accent,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      ...chartDefaults(),
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: function(ctx) { return ctx.parsed.x + '%'; } }
+        },
+        datalabels: {
+          color: c.text, anchor: 'end', align: 'end',
+          formatter: v => v + '%',
+          font: { weight: 'bold', size: 10 }
+        }
+      },
+      scales: {
+        x: { 
+          display: true, beginAtZero: true, 
+          grid: { color: c.border }, 
+          ticks: { color: c.text, font: { size: 10 } },
+          suggestedMax: Math.max(...data, 0) + 10
+        },
+        y: { 
+          grid: { display: false }, 
+          ticks: { color: c.text, font: { size: 11, family: 'var(--font-stack)' } } 
+        }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
 }
 
 function renderTargetChart() {
