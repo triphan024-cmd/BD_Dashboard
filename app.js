@@ -945,6 +945,7 @@ function renderAnalytics() {
 }
 
 function renderPendingPOsChart() {
+  const c = getChartColors();
   if(charts.ivPendingPOs) charts.ivPendingPOs.destroy();
   const canvas = document.getElementById('chart-iv-pending-pos');
   if(!canvas) return;
