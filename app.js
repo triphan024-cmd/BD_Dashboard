@@ -58,6 +58,11 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     showLogin();
   }
+
+  // Initialize Lucide icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
 });
 
 function showLogin() {

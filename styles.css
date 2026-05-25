@@ -286,11 +286,12 @@ body::before {
 }
 .kpi-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.06); }
 .kpi-icon-wrapper {
-    width:44px; height:44px;
-    background:var(--accent-primary-glow);
-    border-radius:12px;
+    width:46px; height:46px;
+    background: #f4f6ff; /* Default unified soft purple/blue bg if no accent */
+    color: #7c83b8; /* Default unified icon color */
+    border-radius:14px;
     display:flex; align-items:center; justify-content:center;
-    font-size:1.3rem; flex-shrink:0;
+    flex-shrink:0;
 }
 .kpi-info { flex:1; }
 .kpi-label { display:block; font-size:0.72rem; color:var(--text-muted); font-weight:600; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px; }
@@ -313,11 +314,23 @@ body::before {
     box-shadow:0 8px 30px rgba(0,0,0,0.08) !important;
 }
 /* Accent wrappers */
-.accent-amber { background:var(--accent-amber-glow) !important; }
-.accent-cyan { background:var(--accent-cyan-glow) !important; }
-.accent-rose { background:var(--accent-rose-glow) !important; }
-.accent-green { background:var(--accent-green-glow) !important; }
-.accent-purple { background:var(--accent-purple-glow) !important; }
+.accent-amber { background:var(--accent-amber-glow) !important; color:var(--accent-amber) !important; }
+.accent-cyan { background:var(--accent-cyan-glow) !important; color:var(--accent-cyan) !important; }
+.accent-rose { background:var(--accent-rose-glow) !important; color:var(--accent-rose) !important; }
+.accent-green { background:var(--accent-green-glow) !important; color:var(--accent-green) !important; }
+.accent-purple { background:var(--accent-purple-glow) !important; color:var(--accent-purple) !important; }
+.accent-blue { background:rgba(0,122,255,0.12) !important; color:#007aff !important; }
+
+/* SVG Icon styling */
+i[data-lucide] {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2px;
+}
+.kpi-icon-wrapper i[data-lucide] {
+    width: 22px;
+    height: 22px;
+}
 .chart-sub { font-size:0.72rem; color:var(--text-muted); font-weight:400; }
 
 /* ========== CHART CARDS ========== */
