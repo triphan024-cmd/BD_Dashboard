@@ -948,8 +948,8 @@ function renderPendingPOsChart() {
   const c = getChartColors();
   if(charts.ivPendingPOsCount) charts.ivPendingPOsCount.destroy();
   if(charts.ivPendingPOsAmount) charts.ivPendingPOsAmount.destroy();
-  const canvasCount = document.getElementById('chart-iv-pending-pos-count');
   const canvasAmount = document.getElementById('chart-iv-pending-pos-amount');
+  const canvasCount = document.getElementById('chart-iv-pending-pos-count');
   if(!canvasCount || !canvasAmount) return;
 
   const pendingData = allData.filter(r => {
@@ -964,53 +964,91 @@ function renderPendingPOsChart() {
     return !st.includes('payment') && !st.includes('completed');
   });
 
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const statusSet = new Set();
+  pendingData.forEach(r => statusSet.add(r[COLS.STATUS] || 'N/A'));
+  const sortedStatuses = Array.from(statusSet).sort((a,b) => a.localeCompare(b));
+
   const mapCount = {};
   const mapAmount = {};
-  pendingData.forEach(r => {
-    let st = r[COLS.STATUS] || 'N/A';
-    mapCount[st] = (mapCount[st] || 0) + 1;
-    mapAmount[st] = (mapAmount[st] || 0) + num(r[COLS.REVENUE]);
+  sortedStatuses.forEach(st => {
+    mapCount[st] = new Array(12).fill(0);
+    mapAmount[st] = new Array(12).fill(0);
   });
 
-  const sortedKeys = Object.keys(mapCount).sort((a,b) => a.localeCompare(b));
-  const counts = sortedKeys.map(k => mapCount[k]);
-  const amounts = sortedKeys.map(k => mapAmount[k]);
-  const bgColors = sortedKeys.map(k => {
-    const prefixMatch = k.match(/^\d+/);
-    return prefixMatch && statusColors[prefixMatch[0]] ? statusColors[prefixMatch[0]] : c.accent;
+  pendingData.forEach(r => {
+    let st = r[COLS.STATUS] || 'N/A';
+    const dateStr = (r[COLS.SO_DATE] || '').split(' ')[0];
+    const parsed = parseSODate(dateStr);
+    if(parsed && parsed.month >= 1 && parsed.month <= 12) {
+      const mIdx = parsed.month - 1;
+      mapCount[st][mIdx] += 1;
+      mapAmount[st][mIdx] += num(r[COLS.REVENUE]);
+    }
   });
+
+  const pastelColors = ['#A8E6CF', '#DCEDC1', '#FFD3B6', '#FFAAA5', '#FF8B94', '#9D94FF', '#B2D8D8', '#FDFD96', '#FFB3BA', '#BAE1FF'];
+
+  const datasetsCount = sortedStatuses.map((st, i) => ({
+    label: st,
+    data: mapCount[st],
+    backgroundColor: pastelColors[i % pastelColors.length],
+    borderWidth: 0,
+    borderRadius: 2
+  }));
+
+  const datasetsAmount = sortedStatuses.map((st, i) => ({
+    label: st,
+    data: mapAmount[st],
+    backgroundColor: pastelColors[i % pastelColors.length],
+    borderWidth: 0,
+    borderRadius: 2
+  }));
 
   const commonOptions = {
     ...chartDefaults(),
-    plugins: { legend: { display: false } },
+    plugins: {
+      legend: { 
+        display: true, position: 'bottom', 
+        labels: { color: c.text, font: { family: 'var(--font-stack)', size: 10 }, usePointStyle: true, boxWidth: 8 } 
+      }
+    },
     scales: {
-      y: { display: false, grid: { display: false } },
-      x: { grid: { display: false }, ticks: { color: c.text, font: { family: 'var(--font-stack)', size: 11 } } }
+      x: { stacked: true, grid: { display: false }, ticks: { color: c.text, font: { family: 'var(--font-stack)', size: 10 } } },
+      y: { stacked: true, display: true, grid: { color: c.border, drawBorder: false }, ticks: { color: c.text, font: { size: 10 } } }
     }
   };
 
-  charts.ivPendingPOsCount = new Chart(canvasCount, {
+  charts.ivPendingPOsAmount = new Chart(canvasAmount, {
     type: 'bar',
-    data: {
-      labels: sortedKeys,
-      datasets: [{ data: counts, backgroundColor: bgColors, borderRadius: 6, borderWidth: 0 }]
-    },
+    data: { labels: monthNames, datasets: datasetsAmount },
     options: {
       ...commonOptions,
-      plugins: { ...commonOptions.plugins, datalabels: { color: c.text, anchor: 'end', align: 'top', font: { weight: 'bold' }, formatter: (v) => fmt(v) } }
+      plugins: { 
+        ...commonOptions.plugins, 
+        datalabels: { 
+          display: function(context) { return context.dataset.data[context.dataIndex] > 0; },
+          color: '#333', anchor: 'center', align: 'center', font: { weight: 'bold', size: 9 }, 
+          formatter: (v) => shortFmt(v) 
+        } 
+      }
     },
     plugins: [ChartDataLabels]
   });
 
-  charts.ivPendingPOsAmount = new Chart(canvasAmount, {
+  charts.ivPendingPOsCount = new Chart(canvasCount, {
     type: 'bar',
-    data: {
-      labels: sortedKeys,
-      datasets: [{ data: amounts, backgroundColor: bgColors, borderRadius: 6, borderWidth: 0 }]
-    },
+    data: { labels: monthNames, datasets: datasetsCount },
     options: {
       ...commonOptions,
-      plugins: { ...commonOptions.plugins, datalabels: { color: c.text, anchor: 'end', align: 'top', font: { weight: 'bold', size: 10 }, formatter: (v) => shortFmt(v) } }
+      plugins: { 
+        ...commonOptions.plugins, 
+        datalabels: { 
+          display: function(context) { return context.dataset.data[context.dataIndex] > 0; },
+          color: '#333', anchor: 'center', align: 'center', font: { weight: 'bold', size: 9 }, 
+          formatter: (v) => fmt(v) 
+        } 
+      }
     },
     plugins: [ChartDataLabels]
   });

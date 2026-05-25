@@ -189,6 +189,16 @@
                     <div class="chart-card glass-card"><div class="chart-header"><h3>Monthly Revenue</h3><div class="chart-actions"><button class="chart-btn" data-chart-type="bar">Bar</button><button class="chart-btn active" data-chart-type="line">Line</button></div></div><div class="chart-body"><canvas id="chart-revenue-monthly"></canvas></div></div>
                     <div class="chart-card glass-card"><div class="chart-header"><h3>Invoiced POs by Month</h3></div><div class="chart-body"><canvas id="chart-po-count"></canvas></div></div>
                 </div>
+                <div class="charts-grid-50" style="margin-top: 20px; margin-bottom: 20px;">
+                    <div class="chart-card glass-card">
+                        <div class="chart-header"><h3>Pending POs (Amount)</h3><span class="chart-sub">Active Value (Current Year)</span></div>
+                        <div class="chart-body"><canvas id="chart-iv-pending-pos-amount" style="min-height: 300px;"></canvas></div>
+                    </div>
+                    <div class="chart-card glass-card">
+                        <div class="chart-header"><h3>Pending POs (Count)</h3><span class="chart-sub">Active Orders (Current Year)</span></div>
+                        <div class="chart-body"><canvas id="chart-iv-pending-pos-count" style="min-height: 300px;"></canvas></div>
+                    </div>
+                </div>
                 <div class="charts-grid-50">
                     <div class="chart-card glass-card"><div class="chart-header"><h3>Top Customers</h3><span class="chart-sub">by Revenue</span></div><div class="chart-body"><div id="top-customers-iv" class="ranking-list"></div></div></div>
                     <div class="chart-card glass-card">
@@ -217,15 +227,6 @@
                     <div class="chart-card glass-card"><div class="chart-header"><h3>Monthly Debt (Công Nợ)</h3><span class="chart-sub">Unpaid Balance</span></div><div class="chart-body"><canvas id="chart-debt-monthly"></canvas></div></div>
                     <div class="chart-card glass-card"><div class="chart-header"><h3>Pending Debt Detail</h3><span class="chart-sub">By Customer</span></div><div class="chart-body"><div id="pending-debt-list" class="ranking-list"></div></div></div>
                 </div>
-                <div class="charts-grid-50" style="margin-top: 20px;">
-                    <div class="chart-card glass-card">
-                        <div class="chart-header"><h3>Pending POs (Count)</h3><span class="chart-sub">Active Orders (Current Year)</span></div>
-                        <div class="chart-body"><canvas id="chart-iv-pending-pos-count" style="min-height: 250px;"></canvas></div>
-                    </div>
-                    <div class="chart-card glass-card">
-                        <div class="chart-header"><h3>Pending POs (Amount)</h3><span class="chart-sub">Active Value (Current Year)</span></div>
-                        <div class="chart-body"><canvas id="chart-iv-pending-pos-amount" style="min-height: 250px;"></canvas></div>
-                    </div>
                 </div>
             </section>
 
@@ -529,6 +530,6 @@
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
     <!-- Custom Scripts -->
-    <script src="app.js?v=62"></script>
+    <script src="app.js?v=63"></script>
 </body>
 </html>
