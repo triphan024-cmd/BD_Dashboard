@@ -208,27 +208,29 @@ async function fetchData() {
     const loader = document.getElementById('loading-screen');
     if (loader) loader.style.display = 'flex';
 
-    // Concurrent fetches
     const urlPO = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(CONFIG.SHEET_NAME)}?key=${CONFIG.API_KEY}`;
     
-    const poPromise = fetch(urlPO);
-    const reportPromise = (typeof fetchReportData === 'function') ? fetchReportData() : Promise.resolve();
-    const qtPrefetchPromise = (typeof prefetchQuotationData === 'function') ? prefetchQuotationData() : Promise.resolve();
+    // Async fetching without blocking UI
+    if (typeof fetchReportData === 'function') {
+      fetchReportData().then(() => { if (typeof renderReportBoard === 'function') renderReportBoard(); });
+    }
+    if (typeof fetchQuotationData === 'function') {
+      fetchQuotationData().then(() => {
+        if (typeof renderQuotationSummary === 'function') renderQuotationSummary();
+        if (typeof renderQuotationCharts === 'function') renderQuotationCharts();
+        if (typeof renderQuotationTable === 'function') renderQuotationTable();
+      });
+    }
 
-    const [resPO] = await Promise.all([poPromise, reportPromise, qtPrefetchPromise]);
+    const resPO = await fetch(urlPO);
 
     if (!resPO.ok) throw new Error(`API Error: ${resPO.status}`);
     const json = await resPO.json();
     const rows = json.values || [];
     if (rows.length < 3) throw new Error('No data found');
-    // Find header row (skip empty rows at top)
     let headerIdx = rows.findIndex(r => r.some(c => c && c.toString().trim() === 'ID SO'));
-    if (headerIdx === -1) headerIdx = 1; // fallback: row 2
-    // Filter by Sales (data starts after header)
+    if (headerIdx === -1) headerIdx = 1; 
     allData = rows.slice(headerIdx + 1).filter(r => (r[COLS.SALES]||'').trim() === CONFIG.SALES_FILTER);
-    
-    // Now that allData is ready, process Quotation data
-    if (typeof fetchQuotationData === 'function') await fetchQuotationData();
 
     document.getElementById('loading-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
@@ -1010,10 +1012,14 @@ function renderPendingPOsChart() {
   const elTotalAmount = document.getElementById('total-pending-amount');
   if (elTotalAmount) elTotalAmount.textContent = fmtCurrency(totalAmount);
 
-  // Instead of pastelColors, we use statusColors mapping
+  const pastelStatusColors = {
+    '1': '#c7c7cc', '2': '#66a3ff', '3': '#40b5b5', '4': '#c78ced',
+    '5': '#ff8a84', '6': '#7cdb96', '7': '#ffc05c', '8': '#ffe680'
+  };
+
   const datasetsCount = sortedStatuses.map((st, i) => {
     const prefixMatch = st.match(/^\d+/);
-    const color = prefixMatch && statusColors[prefixMatch[0]] ? statusColors[prefixMatch[0]] : c.accent;
+    const color = prefixMatch && pastelStatusColors[prefixMatch[0]] ? pastelStatusColors[prefixMatch[0]] : c.accent;
     return {
       label: st,
       data: mapCount[st],
@@ -1025,7 +1031,7 @@ function renderPendingPOsChart() {
 
   const datasetsAmount = sortedStatuses.map((st, i) => {
     const prefixMatch = st.match(/^\d+/);
-    const color = prefixMatch && statusColors[prefixMatch[0]] ? statusColors[prefixMatch[0]] : c.accent;
+    const color = prefixMatch && pastelStatusColors[prefixMatch[0]] ? pastelStatusColors[prefixMatch[0]] : c.accent;
     return {
       label: st,
       data: mapAmount[st],
@@ -1037,6 +1043,7 @@ function renderPendingPOsChart() {
 
   const commonOptions = {
     ...chartDefaults(),
+    interaction: { mode: 'index', intersect: false },
     plugins: {
       legend: { 
         display: true, position: 'bottom', 
@@ -1206,29 +1213,12 @@ function renderReportBoard() {
 }
 
 // ===== QUOTATION DATA =====
-let qtJsonCache = null;
-
-async function prefetchQuotationData() {
+async function fetchQuotationData() {
   try {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.QT_SHEET_ID}/values:batchGet?ranges=QT26!A1:AZ&ranges=${encodeURIComponent("'QT KL'!A1:AZ")}&ranges=${encodeURIComponent("'QT SS'!A1:AZ")}&key=${CONFIG.API_KEY}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`QT API Error: ${res.status}`);
-    qtJsonCache = await res.json();
-  } catch(e) {
-    console.error('Prefetch QT failed', e);
-  }
-}
-
-async function fetchQuotationData() {
-  try {
-    let json = qtJsonCache;
-    if (!json) {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.QT_SHEET_ID}/values:batchGet?ranges=QT26!A1:AZ&ranges=${encodeURIComponent("'QT KL'!A1:AZ")}&ranges=${encodeURIComponent("'QT SS'!A1:AZ")}&key=${CONFIG.API_KEY}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`QT API Error: ${res.status}`);
-      json = await res.json();
-    }
-    qtJsonCache = null; // Clear cache
+    const json = await res.json();
     allQuotations = [];
     
     let masterColMap = null;
