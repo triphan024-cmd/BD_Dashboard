@@ -41,7 +41,7 @@ const COLS = {
 
 const DISPLAY_COLS = ['ID_SO','STATUS','SO_DATE','CUSTOMER','PO_NO','NAME','QTY','AMOUNT','REVENUE','PROFIT','MARGIN','IV_MONTH','IV_YEAR','SALES_SITUATION'];
 
-let allData = [], allQuotations = [], charts = {}, currentMonth, currentYear, currentView = 'quotation', currentQtSource = 'QT26';
+let allData = [], allQuotations = [], monthlyReportData = [], charts = {}, currentMonth, currentYear, currentView = 'quotation', currentQtSource = 'QT26';
 
 const statusColors = {
   '1': '#8e8e93', '2': '#007aff', '3': '#069494', '4': '#af52de',
@@ -219,6 +219,9 @@ async function fetchData() {
     if (typeof fetchReportData === 'function') {
       fetchReportData().then(() => { if (typeof renderReportBoard === 'function') renderReportBoard(); }).catch(e => console.error(e));
     }
+    if (typeof fetchMonthlyReportData === 'function') {
+      fetchMonthlyReportData().then(() => { if (typeof renderMonthlyReport === 'function') renderMonthlyReport(); }).catch(e => console.error(e));
+    }
 
     const resPO = await poPromise;
 
@@ -333,6 +336,7 @@ function renderAll() {
   if (typeof renderQuotationCharts === 'function') renderQuotationCharts();
   if (typeof renderQuotationTable === 'function') renderQuotationTable();
   if (typeof renderPendingPOsChart === 'function') renderPendingPOsChart();
+  if (typeof renderMonthlyReport === 'function') renderMonthlyReport();
 }
 
 // ===== SECTION 1: PO NHẬN ĐƯỢC (SO Date) =====
@@ -1693,4 +1697,193 @@ function filterQuotationTable() {
   trs.forEach(tr => {
     tr.style.display = tr.textContent.toLowerCase().includes(term) ? '' : 'none';
   });
+}
+
+// ===== MONTHLY REPORT =====
+async function fetchMonthlyReportData() {
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.QT_SHEET_ID}/values/${encodeURIComponent('Report')}?key=${CONFIG.API_KEY}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`MR API Error: ${res.status}`);
+    const json = await res.json();
+    const rows = json.values || [];
+    
+    monthlyReportData = rows.slice(1).map(r => ({
+      month: r[0] || '',
+      week: r[1] || '',
+      status: r[2] || '',
+      customer: r[3] || '',
+      topic: r[4] || '',
+      brand: r[5] || '',
+      detail: r[6] || '',
+      amount: r[7] || '',
+      action: r[8] || '',
+      remark: r[9] || ''
+    })).filter(r => r.month || r.customer || r.status || r.topic);
+    
+    if (typeof populateMRFilters === 'function') populateMRFilters();
+  } catch (e) {
+    console.error('Failed to fetch Monthly Report data:', e);
+  }
+}
+
+let mrCurrentPage = 1;
+
+function populateMRFilters() {
+  const months = [...new Set(monthlyReportData.map(r => r.month).filter(Boolean))].sort((a,b)=>num(a)-num(b));
+  const weeks = [...new Set(monthlyReportData.map(r => r.week).filter(Boolean))].sort((a,b)=>num(a)-num(b));
+  const statuses = [...new Set(monthlyReportData.map(r => r.status).filter(Boolean))].sort();
+
+  const populate = (id, arr, defaultText) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const currentVal = el.value;
+    el.innerHTML = `<option value="">${defaultText}</option>` + arr.map(x => `<option value="${x}">${x}</option>`).join('');
+    el.value = currentVal;
+    el.onchange = () => { mrCurrentPage = 1; renderMonthlyReport(); };
+  };
+
+  populate('mr-month-filter', months, 'All Months');
+  populate('mr-week-filter', weeks, 'All Weeks');
+  populate('mr-status-filter', statuses, 'All Status');
+  
+  const searchInput = document.getElementById('mr-search');
+  if (searchInput) {
+    searchInput.oninput = () => { mrCurrentPage = 1; renderMonthlyReport(); };
+  }
+}
+
+function renderMonthlyReport() {
+  if (currentView !== 'monthly-report') return;
+  
+  const fMonth = document.getElementById('mr-month-filter')?.value || '';
+  const fWeek = document.getElementById('mr-week-filter')?.value || '';
+  const fStatus = document.getElementById('mr-status-filter')?.value || '';
+  const fSearch = (document.getElementById('mr-search')?.value || '').toLowerCase();
+  
+  let filtered = monthlyReportData;
+  if (fMonth) filtered = filtered.filter(r => r.month === fMonth);
+  if (fWeek) filtered = filtered.filter(r => r.week === fWeek);
+  if (fStatus) filtered = filtered.filter(r => r.status === fStatus);
+  if (fSearch) filtered = filtered.filter(r => (r.customer||'').toLowerCase().includes(fSearch) || (r.detail||'').toLowerCase().includes(fSearch));
+  
+  const total = filtered.length;
+  const completed = filtered.filter(r => String(r.status||'').toLowerCase().includes('done') || String(r.status||'').toLowerCase().includes('complete') || String(r.status||'').includes('PO') || String(r.status||'').includes('Win')).length;
+  const pending = filtered.filter(r => String(r.status||'').toLowerCase().includes('pending') || String(r.status||'').toLowerCase().includes('waiting')).length;
+  
+  const elTotal = document.getElementById('kpi-mr-total'); if(elTotal) elTotal.textContent = total;
+  const elComp = document.getElementById('kpi-mr-completed'); if(elComp) elComp.textContent = completed;
+  const elPend = document.getElementById('kpi-mr-pending'); if(elPend) elPend.textContent = pending;
+  
+  renderMRCharts(filtered);
+  
+  const totalPages = Math.ceil(total / CONFIG.ROWS_PER_PAGE) || 1;
+  mrCurrentPage = Math.min(mrCurrentPage, totalPages);
+  const start = (mrCurrentPage - 1) * CONFIG.ROWS_PER_PAGE;
+  const pageData = filtered.slice(start, start + CONFIG.ROWS_PER_PAGE);
+  
+  const tbody = document.getElementById('mr-table-body');
+  if (tbody) {
+    tbody.innerHTML = pageData.map(r => `
+      <tr>
+        <td style="text-align:center;">${r.month}</td>
+        <td style="text-align:center;">${r.week}</td>
+        <td><span class="status-badge ${getMRStatusClass(r.status)}">${r.status || '—'}</span></td>
+        <td style="font-weight:600; color:var(--text-primary);">${r.customer}</td>
+        <td>${r.topic}</td>
+        <td style="color:var(--text-secondary);">${r.brand}</td>
+        <td style="max-width:250px; white-space:pre-wrap; font-size:0.85rem;">${r.detail}</td>
+        <td style="text-align:right; font-weight:600;">${r.amount}</td>
+        <td style="max-width:200px; white-space:pre-wrap; font-size:0.85rem; color:var(--accent-primary);">${r.action}</td>
+        <td style="max-width:150px; white-space:pre-wrap; font-size:0.85rem; color:var(--text-muted);">${r.remark}</td>
+      </tr>
+    `).join('') || `<tr><td colspan="10" style="text-align:center; padding:40px; color:var(--text-muted);">No data found</td></tr>`;
+  }
+  
+  const elInfo = document.getElementById('mr-table-info'); if(elInfo) elInfo.textContent = `Showing ${pageData.length} / ${total} rows`;
+  
+  let pagHTML = '';
+  for(let i=1; i<=Math.min(totalPages, 7); i++) {
+    pagHTML += `<button class="${i===mrCurrentPage?'active':''}" onclick="mrCurrentPage=${i}; renderMonthlyReport();">${i}</button>`;
+  }
+  const elPag = document.getElementById('mr-pagination'); if(elPag) elPag.innerHTML = pagHTML;
+}
+
+function getMRStatusClass(status) {
+  const s = String(status||'').toLowerCase();
+  if(s.includes('done') || s.includes('complete') || s.includes('po') || s.includes('win')) return 'status-6';
+  if(s.includes('pending') || s.includes('waiting')) return 'status-7';
+  if(s.includes('fail') || s.includes('cancel') || s.includes('lost') || s.includes('stop')) return 'status-5';
+  if(s.includes('quoted')) return 'status-2';
+  return 'status-1';
+}
+
+function renderMRCharts(data) {
+  const c = getChartColors();
+  
+  const statusMap = {};
+  data.forEach(r => { const s = r.status || 'N/A'; statusMap[s] = (statusMap[s] || 0) + 1; });
+  const statusLabels = Object.keys(statusMap).sort((a,b) => statusMap[b] - statusMap[a]);
+  const statusData = statusLabels.map(l => statusMap[l]);
+  
+  if (charts.mrStatus) charts.mrStatus.destroy();
+  const ctxStatus = document.getElementById('chart-mr-status');
+  if (ctxStatus) {
+    charts.mrStatus = new Chart(ctxStatus, {
+      type: 'doughnut',
+      data: {
+        labels: statusLabels,
+        datasets: [{
+          data: statusData,
+          backgroundColor: [c.accent, c.green, c.amber, c.red, c.cyan, c.cyanA, '#8e8e93', '#ffcc00'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        ...chartDefaults(),
+        cutout: '70%',
+        plugins: {
+          legend: { display: true, position: 'right', labels: { color: c.text, font: { size: 10 } } },
+          datalabels: { display: false }
+        }
+      }
+    });
+  }
+  
+  const weekMap = {};
+  data.forEach(r => { const w = r.week ? 'W'+r.week : 'N/A'; weekMap[w] = (weekMap[w] || 0) + 1; });
+  const weekLabels = Object.keys(weekMap).sort((a,b) => {
+    if(a==='N/A') return 1; if(b==='N/A') return -1;
+    return parseInt(a.replace('W','')) - parseInt(b.replace('W',''));
+  });
+  const weekData = weekLabels.map(l => weekMap[l]);
+  
+  if (charts.mrWeek) charts.mrWeek.destroy();
+  const ctxWeek = document.getElementById('chart-mr-week');
+  if (ctxWeek) {
+    charts.mrWeek = new Chart(ctxWeek, {
+      type: 'bar',
+      data: {
+        labels: weekLabels,
+        datasets: [{
+          label: 'Tasks',
+          data: weekData,
+          backgroundColor: c.accent,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        ...chartDefaults(),
+        plugins: {
+          legend: { display: false },
+          datalabels: { color: c.text, anchor: 'end', align: 'top', font: { weight: 'bold' } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: c.text } },
+          y: { beginAtZero: true, grid: { color: c.border }, ticks: { color: c.text, stepSize: 1 } }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+  }
 }

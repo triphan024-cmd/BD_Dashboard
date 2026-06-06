@@ -82,7 +82,11 @@
                 </a>
                 <a href="#" class="nav-item" data-view="report">
                     <i data-lucide="bar-chart-3" class="nav-icon"></i>
-                    <span class="nav-label">Report</span>
+                    <span class="nav-label">Activity Report</span>
+                </a>
+                <a href="#" class="nav-item" data-view="monthly-report">
+                    <i data-lucide="calendar-days" class="nav-icon"></i>
+                    <span class="nav-label">Monthly Report</span>
                 </a>
             </nav>
             <div class="sidebar-footer">
@@ -408,6 +412,89 @@
                     </div>
                 </section>
 
+                <!-- View: Monthly Report -->
+                <section class="view-section" id="view-monthly-report">
+                    <div class="report-header-bar">
+                        <h2>Monthly Report</h2>
+                    </div>
+                    
+                    <!-- KPI Grid -->
+                    <div class="kpi-grid">
+                        <div class="kpi-card glass-card primary-gradient">
+                            <div class="kpi-icon-wrapper"><i data-lucide="briefcase" class="kpi-icon"></i></div>
+                            <div class="kpi-info"><span class="kpi-label">Total Tasks</span><span class="kpi-value" id="kpi-mr-total">—</span></div>
+                        </div>
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-green"><i data-lucide="check-circle" class="kpi-icon"></i></div>
+                            <div class="kpi-info"><span class="kpi-label">Completed</span><span class="kpi-value" id="kpi-mr-completed">—</span></div>
+                        </div>
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-amber"><i data-lucide="clock" class="kpi-icon"></i></div>
+                            <div class="kpi-info"><span class="kpi-label">Waiting/Pending</span><span class="kpi-value" id="kpi-mr-pending">—</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="charts-grid-50" style="margin-top: 20px;">
+                        <div class="chart-card glass-card">
+                            <div class="chart-header">
+                                <h3>Tasks by Status</h3>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="chart-mr-status"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card glass-card">
+                            <div class="chart-header">
+                                <h3>Tasks by Week</h3>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="chart-mr-week"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Table -->
+                    <div class="table-container glass-card" style="margin-top: 20px;">
+                        <div class="table-toolbar">
+                            <div class="search-box">
+                                <i data-lucide="search" class="search-icon" style="width: 16px; height: 16px; margin-right: 8px;"></i>
+                                <input type="text" id="mr-search" placeholder="Search Customer...">
+                            </div>
+                            <div class="table-filters">
+                                <select id="mr-month-filter" class="filter-select"><option value="">All Months</option></select>
+                                <select id="mr-week-filter" class="filter-select"><option value="">All Weeks</option></select>
+                                <select id="mr-status-filter" class="filter-select"><option value="">All Status</option></select>
+                            </div>
+                        </div>
+                        <div class="table-scroll">
+                            <table class="data-table" id="mr-table">
+                                <thead>
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>Week</th>
+                                        <th>Status</th>
+                                        <th>Customer</th>
+                                        <th>Topic</th>
+                                        <th>Brand</th>
+                                        <th>Detail</th>
+                                        <th>Amount</th>
+                                        <th>Action</th>
+                                        <th>Remark</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mr-table-body">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-footer">
+                            <span id="mr-table-info">Showing 0 rows</span>
+                            <div class="pagination" id="mr-pagination"></div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- View: Quotation -->
                 <section id="view-quotation" class="view-section active">
                     <div class="kpi-grid">
@@ -560,7 +647,7 @@
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
     <!-- Custom Scripts -->
-    <script src="app.js?v=73"></script>
+    <script src="app.js?v=74"></script>
 </body>
 </html>
 
