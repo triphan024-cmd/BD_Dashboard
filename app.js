@@ -9,7 +9,8 @@ const CONFIG = {
   ROWS_PER_PAGE: 20,
   REPORT_SHEET_ID: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.REPORT_SHEET_ID) || '1UIqT7rWcfkaAJHZDR5Gzsb4LAcyvh2voVjwHDl7Be7U',
   REPORT_SHEET_NAME: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.REPORT_SHEET_NAME) || 'Report',
-  QT_SHEET_ID: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.QT_SHEET_ID) || '1TTB57jpVnERMZPd17kIcr8G-3eG_Yr43W95G0710Uy4'
+  QT_SHEET_ID: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.QT_SHEET_ID) || '1TTB57jpVnERMZPd17kIcr8G-3eG_Yr43W95G0710Uy4',
+  LEADER_SHEET_ID: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.LEADER_SHEET_ID) || '1dTcxPgSS2olUtgjjk2ZUvUo8e53Vi6J5Kk4bynKL0OE'
 };
 
 // Simple auth (hash-based for client-side security)
@@ -41,7 +42,7 @@ const COLS = {
 
 const DISPLAY_COLS = ['ID_SO','STATUS','SO_DATE','CUSTOMER','PO_NO','NAME','QTY','AMOUNT','REVENUE','PROFIT','MARGIN','IV_MONTH','IV_YEAR','SALES_SITUATION'];
 
-let allData = [], allQuotations = [], monthlyReportData = [], charts = {}, currentMonth, currentYear, currentView = 'quotation', currentQtSource = 'QT26';
+let allData = [], allQuotations = [], monthlyReportData = [], leaderData = [], charts = {}, currentMonth, currentYear, currentView = 'quotation', currentQtSource = 'QT26';
 
 const statusColors = {
   '1': '#8e8e93', '2': '#007aff', '3': '#069494', '4': '#af52de',
@@ -222,6 +223,9 @@ async function fetchData() {
     if (typeof fetchMonthlyReportData === 'function') {
       fetchMonthlyReportData().then(() => { if (typeof renderMonthlyReport === 'function') renderMonthlyReport(); }).catch(e => console.error(e));
     }
+    if (typeof fetchLeaderData === 'function') {
+      fetchLeaderData().then(() => { if (typeof renderLeaderView === 'function') renderLeaderView(); }).catch(e => console.error(e));
+    }
 
     const resPO = await poPromise;
 
@@ -337,6 +341,7 @@ function renderAll() {
   if (typeof renderQuotationTable === 'function') renderQuotationTable();
   if (typeof renderPendingPOsChart === 'function') renderPendingPOsChart();
   if (typeof renderMonthlyReport === 'function') renderMonthlyReport();
+  if (typeof renderLeaderView === 'function') renderLeaderView();
 }
 
 // ===== SECTION 1: PO NHẬN ĐƯỢC (SO Date) =====
@@ -1881,6 +1886,218 @@ function renderMRCharts(data) {
         scales: {
           x: { grid: { display: false }, ticks: { color: c.text } },
           y: { beginAtZero: true, grid: { color: c.border }, ticks: { color: c.text, stepSize: 1 } }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+  }
+}
+
+// ===== LEADER VIEW =====
+async function fetchLeaderData() {
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.LEADER_SHEET_ID}/values/Task?key=${CONFIG.API_KEY}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`LD API Error: ${res.status}`);
+    const json = await res.json();
+    const rows = json.values || [];
+    
+    leaderData = rows.slice(1).map(r => ({
+      pic: r[4] || '',
+      onething: r[5] || '',
+      planDetail: r[6] || '',
+      result: r[7] || '',
+      pending: r[8] || '',
+      status: r[1] || '',
+      deadline: r[9] || '',
+      label: r[15] || '',
+      month: r[20] || '',
+      week: r[19] || ''
+    })).filter(r => r.pic || r.onething || r.planDetail);
+    
+    if (typeof populateLDFilters === 'function') populateLDFilters();
+  } catch (e) {
+    console.error('Failed to fetch Leader data:', e);
+  }
+}
+
+let ldCurrentPage = 1;
+
+function populateLDFilters() {
+  const pics = [...new Set(leaderData.map(r => r.pic).filter(Boolean))].sort();
+  const statuses = [...new Set(leaderData.map(r => r.status).filter(Boolean))].sort();
+  const months = [...new Set(leaderData.map(r => r.month).filter(Boolean))].sort((a,b)=>num(a)-num(b));
+  const weeks = [...new Set(leaderData.map(r => r.week).filter(Boolean))].sort((a,b)=>num(a)-num(b));
+
+  const populate = (id, arr, defaultText) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const currentVal = el.value;
+    el.innerHTML = `<option value="">${defaultText}</option>` + arr.map(x => `<option value="${x}">${x}</option>`).join('');
+    el.value = currentVal;
+    el.onchange = () => { ldCurrentPage = 1; renderLeaderView(); };
+  };
+
+  populate('ld-pic-filter', pics, 'All PICs');
+  populate('ld-status-filter', statuses, 'All Status');
+  populate('ld-month-filter', months, 'All Months');
+  populate('ld-week-filter', weeks, 'All Weeks');
+  
+  const searchInput = document.getElementById('ld-search');
+  if (searchInput) {
+    searchInput.oninput = () => { ldCurrentPage = 1; renderLeaderView(); };
+  }
+}
+
+function renderLeaderView() {
+  if (currentView !== 'leader') return;
+  
+  const fPic = document.getElementById('ld-pic-filter')?.value || '';
+  const fStatus = document.getElementById('ld-status-filter')?.value || '';
+  const fMonth = document.getElementById('ld-month-filter')?.value || '';
+  const fWeek = document.getElementById('ld-week-filter')?.value || '';
+  const fSearch = (document.getElementById('ld-search')?.value || '').toLowerCase();
+  
+  let filtered = leaderData;
+  if (fPic) filtered = filtered.filter(r => r.pic === fPic);
+  if (fStatus) filtered = filtered.filter(r => r.status === fStatus);
+  if (fMonth) filtered = filtered.filter(r => r.month === fMonth);
+  if (fWeek) filtered = filtered.filter(r => r.week === fWeek);
+  if (fSearch) filtered = filtered.filter(r => 
+    (r.onething||'').toLowerCase().includes(fSearch) || 
+    (r.planDetail||'').toLowerCase().includes(fSearch) ||
+    (r.result||'').toLowerCase().includes(fSearch)
+  );
+  
+  const total = filtered.length;
+  const completed = filtered.filter(r => String(r.status||'').toLowerCase().includes('completed') || String(r.status||'').toLowerCase().includes('done')).length;
+  const processing = filtered.filter(r => String(r.status||'').toLowerCase().includes('processing') || String(r.status||'').toLowerCase().includes('doing')).length;
+  const pending = filtered.filter(r => String(r.status||'').toLowerCase().includes('pending') || String(r.status||'').toLowerCase().includes('waiting')).length;
+  
+  const elTotal = document.getElementById('kpi-ld-total'); if(elTotal) elTotal.textContent = total;
+  const elComp = document.getElementById('kpi-ld-completed'); if(elComp) elComp.textContent = completed;
+  const elProc = document.getElementById('kpi-ld-processing'); if(elProc) elProc.textContent = processing;
+  const elPend = document.getElementById('kpi-ld-pending'); if(elPend) elPend.textContent = pending;
+  
+  renderLDCharts(filtered);
+  
+  const totalPages = Math.ceil(total / CONFIG.ROWS_PER_PAGE) || 1;
+  ldCurrentPage = Math.min(ldCurrentPage, totalPages);
+  const start = (ldCurrentPage - 1) * CONFIG.ROWS_PER_PAGE;
+  const pageData = filtered.slice(start, start + CONFIG.ROWS_PER_PAGE);
+  
+  const tbody = document.getElementById('ld-table-body');
+  if (tbody) {
+    tbody.innerHTML = pageData.map(r => {
+      let picName = r.pic;
+      if (picName.includes('-')) picName = picName.split('-')[0].trim();
+      
+      return `
+      <tr>
+        <td style="font-weight:600; color:var(--text-primary); white-space:nowrap;">${picName}</td>
+        <td style="font-weight:600;">${r.onething}</td>
+        <td style="max-width:250px; white-space:pre-wrap; font-size:0.85rem; color:var(--text-secondary);">${r.planDetail}</td>
+        <td style="max-width:250px; white-space:pre-wrap; font-size:0.85rem; color:var(--accent-green);">${r.result}</td>
+        <td style="max-width:200px; white-space:pre-wrap; font-size:0.85rem; color:var(--accent-rose);">${r.pending}</td>
+        <td><span class="status-badge ${getLDStatusClass(r.status)}">${r.status || '—'}</span></td>
+        <td style="white-space:nowrap; color:var(--text-muted);">${r.deadline}</td>
+        <td><span class="badge" style="background:var(--bg-glass); border:1px solid var(--border-color);">${r.label}</span></td>
+      </tr>
+    `}).join('') || `<tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">No data found</td></tr>`;
+  }
+  
+  const elInfo = document.getElementById('ld-table-info'); if(elInfo) elInfo.textContent = `Showing ${pageData.length} / ${total} rows`;
+  
+  let pagHTML = '';
+  for(let i=1; i<=Math.min(totalPages, 7); i++) {
+    pagHTML += `<button class="${i===ldCurrentPage?'active':''}" onclick="ldCurrentPage=${i}; renderLeaderView();">${i}</button>`;
+  }
+  const elPag = document.getElementById('ld-pagination'); if(elPag) elPag.innerHTML = pagHTML;
+}
+
+function getLDStatusClass(status) {
+  const s = String(status||'').toLowerCase();
+  if(s.includes('completed') || s.includes('done')) return 'status-6';
+  if(s.includes('processing') || s.includes('doing')) return 'status-2';
+  if(s.includes('pending') || s.includes('waiting')) return 'status-7';
+  if(s.includes('cancel') || s.includes('fail')) return 'status-5';
+  return 'status-1';
+}
+
+function renderLDCharts(data) {
+  const c = getChartColors();
+  
+  const picMap = {};
+  data.forEach(r => { 
+    let pic = r.pic || 'Unknown';
+    if(pic.includes('-')) pic = pic.split('-')[0].trim();
+    picMap[pic] = (picMap[pic] || 0) + 1; 
+  });
+  const picLabels = Object.keys(picMap).sort((a,b) => picMap[b] - picMap[a]);
+  const picData = picLabels.map(l => picMap[l]);
+  
+  if (charts.ldPic) charts.ldPic.destroy();
+  const ctxPic = document.getElementById('chart-ld-pic');
+  if (ctxPic) {
+    charts.ldPic = new Chart(ctxPic, {
+      type: 'bar',
+      data: {
+        labels: picLabels,
+        datasets: [{
+          label: 'Tasks',
+          data: picData,
+          backgroundColor: [c.accent, c.green, c.blue, c.amber, c.rose, c.cyan],
+          borderRadius: 4
+        }]
+      },
+      options: {
+        ...chartDefaults(),
+        plugins: {
+          legend: { display: false },
+          datalabels: { color: c.text, anchor: 'end', align: 'top', font: { weight: 'bold' } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: c.text } },
+          y: { beginAtZero: true, grid: { color: c.border }, ticks: { color: c.text, stepSize: 1 } }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+  }
+  
+  const statusMap = {};
+  data.forEach(r => { const s = r.status || 'No Status'; statusMap[s] = (statusMap[s] || 0) + 1; });
+  const statusLabels = Object.keys(statusMap).sort((a,b) => statusMap[b] - statusMap[a]);
+  const statusData = statusLabels.map(l => statusMap[l]);
+  
+  if (charts.ldStatus) charts.ldStatus.destroy();
+  const ctxStatus = document.getElementById('chart-ld-status');
+  if (ctxStatus) {
+    charts.ldStatus = new Chart(ctxStatus, {
+      type: 'pie',
+      data: {
+        labels: statusLabels,
+        datasets: [{
+          data: statusData,
+          backgroundColor: [c.green, c.blue, c.amber, c.red, c.accent, '#8e8e93'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        ...chartDefaults(),
+        plugins: {
+          legend: { display: true, position: 'right', labels: { color: c.text, font: { size: 10 } } },
+          datalabels: {
+            color: '#fff',
+            font: { weight: 'bold', size: 11 },
+            formatter: (v, ctx) => {
+              let sum = 0;
+              let dataArr = ctx.chart.data.datasets[0].data;
+              dataArr.map(data => { sum += data; });
+              let percentage = (v*100 / sum).toFixed(0)+"%";
+              return percentage;
+            }
+          }
         }
       },
       plugins: [ChartDataLabels]

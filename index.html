@@ -88,6 +88,10 @@
                     <i data-lucide="calendar-days" class="nav-icon"></i>
                     <span class="nav-label">Monthly Report</span>
                 </a>
+                <a href="#" class="nav-item" data-view="leader">
+                    <i data-lucide="target" class="nav-icon"></i>
+                    <span class="nav-label">Leader</span>
+                </a>
             </nav>
             <div class="sidebar-footer">
                 <button class="btn-settings" id="btn-settings" title="Sign Out">
@@ -495,6 +499,92 @@
                     </div>
                 </section>
 
+                <!-- View: Leader -->
+                <section class="view-section" id="view-leader">
+                    <div class="report-header-bar">
+                        <h2>Leader Task Board</h2>
+                    </div>
+                    
+                    <!-- KPI Grid -->
+                    <div class="kpi-grid">
+                        <div class="kpi-card glass-card primary-gradient">
+                            <div class="kpi-icon-wrapper"><i data-lucide="briefcase" class="kpi-icon"></i></div>
+                            <div class="kpi-info"><span class="kpi-label">Total Tasks</span><span class="kpi-value" id="kpi-ld-total">—</span></div>
+                        </div>
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-green"><i data-lucide="check-circle" class="kpi-icon"></i></div>
+                            <div class="kpi-info"><span class="kpi-label">Completed</span><span class="kpi-value" id="kpi-ld-completed">—</span></div>
+                        </div>
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-blue"><i data-lucide="loader" class="kpi-icon"></i></div>
+                            <div class="kpi-info"><span class="kpi-label">Processing</span><span class="kpi-value" id="kpi-ld-processing">—</span></div>
+                        </div>
+                        <div class="kpi-card glass-card">
+                            <div class="kpi-icon-wrapper accent-amber"><i data-lucide="clock" class="kpi-icon"></i></div>
+                            <div class="kpi-info"><span class="kpi-label">Pending</span><span class="kpi-value" id="kpi-ld-pending">—</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="charts-grid-50" style="margin-top: 20px;">
+                        <div class="chart-card glass-card">
+                            <div class="chart-header">
+                                <h3>Tasks by PIC</h3>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="chart-ld-pic"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card glass-card">
+                            <div class="chart-header">
+                                <h3>Tasks by Status</h3>
+                            </div>
+                            <div class="chart-body">
+                                <canvas id="chart-ld-status"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Table -->
+                    <div class="table-container glass-card" style="margin-top: 20px;">
+                        <div class="table-toolbar">
+                            <div class="search-box">
+                                <i data-lucide="search" class="search-icon" style="width: 16px; height: 16px; margin-right: 8px;"></i>
+                                <input type="text" id="ld-search" placeholder="Search tasks...">
+                            </div>
+                            <div class="table-filters">
+                                <select id="ld-pic-filter" class="filter-select"><option value="">All PICs</option></select>
+                                <select id="ld-status-filter" class="filter-select"><option value="">All Status</option></select>
+                                <select id="ld-month-filter" class="filter-select"><option value="">All Months</option></select>
+                                <select id="ld-week-filter" class="filter-select"><option value="">All Weeks</option></select>
+                            </div>
+                        </div>
+                        <div class="table-scroll">
+                            <table class="data-table" id="ld-table">
+                                <thead>
+                                    <tr>
+                                        <th>PIC</th>
+                                        <th>Onething</th>
+                                        <th>Plan Detail</th>
+                                        <th>Result</th>
+                                        <th>Pending</th>
+                                        <th>Status</th>
+                                        <th>Deadline</th>
+                                        <th>Label</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ld-table-body">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-footer">
+                            <span id="ld-table-info">Showing 0 rows</span>
+                            <div class="pagination" id="ld-pagination"></div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- View: Quotation -->
                 <section id="view-quotation" class="view-section active">
                     <div class="kpi-grid">
@@ -647,7 +737,7 @@
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
     <!-- Custom Scripts -->
-    <script src="app.js?v=75"></script>
+    <script src="app.js?v=76"></script>
 </body>
 </html>
 
