@@ -41,7 +41,7 @@ const COLS = {
 
 const DISPLAY_COLS = ['ID_SO','STATUS','SO_DATE','CUSTOMER','PO_NO','NAME','QTY','AMOUNT','REVENUE','PROFIT','MARGIN','IV_MONTH','IV_YEAR','SALES_SITUATION'];
 
-let allData = [], allQuotations = [], monthlyReportData = [], charts = {}, currentMonth, currentYear, currentView = 'quotation', currentQtSource = 'QT26', currentMRTab = 'New Customer';
+let allData = [], allQuotations = [], monthlyReportData = [], charts = {}, currentMonth, currentYear, currentView = 'quotation', currentQtSource = 'QT26', currentMRTab = 'General';
 
 const statusColors = {
   '1': '#8e8e93', '2': '#007aff', '3': '#069494', '4': '#af52de',
@@ -1847,32 +1847,66 @@ function getMRStatusClass(status) {
 function renderMRCharts(data) {
   const c = getChartColors();
   
-  const statusMap = {};
-  data.forEach(r => { const s = r.status || 'N/A'; statusMap[s] = (statusMap[s] || 0) + 1; });
-  const statusLabels = Object.keys(statusMap).sort((a,b) => statusMap[b] - statusMap[a]);
-  const statusData = statusLabels.map(l => statusMap[l]);
+  // --- Tasks by Status (Stacked by Month) ---
+  const monthMap = {};
+  const statusSet = new Set();
+  
+  data.forEach(r => { 
+    const m = r.month ? 'M' + r.month : 'N/A';
+    const s = r.status || 'N/A';
+    statusSet.add(s);
+    if (!monthMap[m]) monthMap[m] = {};
+    monthMap[m][s] = (monthMap[m][s] || 0) + 1;
+  });
+  
+  const monthLabels = Object.keys(monthMap).sort((a,b) => {
+    if(a==='N/A') return 1; if(b==='N/A') return -1;
+    return parseInt(a.replace('M','')) - parseInt(b.replace('M',''));
+  });
+  const sortedStatuses = Array.from(statusSet).sort();
+  
+  const pastelStatusColors = {
+    '1': '#c7c7cc', '2': '#66a3ff', '3': '#40b5b5', '4': '#c78ced',
+    '5': '#ff8a84', '6': '#7cdb96', '7': '#ffc05c', '8': '#ffe680'
+  };
+
+  const datasetsStatus = sortedStatuses.map(st => {
+    const prefixMatch = st.match(/^\d+/);
+    const color = prefixMatch && pastelStatusColors[prefixMatch[0]] ? pastelStatusColors[prefixMatch[0]] : c.accent;
+    return {
+      label: st,
+      data: monthLabels.map(m => monthMap[m][st] || 0),
+      backgroundColor: color,
+      borderWidth: 0,
+      borderRadius: 2
+    };
+  });
   
   if (charts.mrStatus) charts.mrStatus.destroy();
   const ctxStatus = document.getElementById('chart-mr-status');
   if (ctxStatus) {
     charts.mrStatus = new Chart(ctxStatus, {
-      type: 'doughnut',
+      type: 'bar',
       data: {
-        labels: statusLabels,
-        datasets: [{
-          data: statusData,
-          backgroundColor: [c.accent, c.green, c.amber, c.red, c.cyan, c.cyanA, '#8e8e93', '#ffcc00'],
-          borderWidth: 0
-        }]
+        labels: monthLabels,
+        datasets: datasetsStatus
       },
       options: {
         ...chartDefaults(),
-        cutout: '70%',
         plugins: {
-          legend: { display: true, position: 'right', labels: { color: c.text, font: { size: 10 } } },
-          datalabels: { display: false }
+          legend: { display: true, position: 'bottom', labels: { color: c.text, font: { size: 10 } } },
+          datalabels: {
+            color: '#fff',
+            font: { weight: 'bold', size: 10 },
+            display: function(context) { return context.dataset.data[context.dataIndex] > 0; }
+          }
+        },
+        scales: {
+          x: { stacked: true, grid: { display: false }, ticks: { color: c.text } },
+          y: { stacked: true, beginAtZero: true, grid: { color: c.border }, ticks: { color: c.text, stepSize: 1 } }
         }
-      }
+      },
+      plugins: [ChartDataLabels]
     });
   }
   
