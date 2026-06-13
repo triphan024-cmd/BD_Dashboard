@@ -41,7 +41,7 @@ const COLS = {
 
 const DISPLAY_COLS = ['ID_SO','STATUS','SO_DATE','CUSTOMER','PO_NO','NAME','QTY','AMOUNT','REVENUE','PROFIT','MARGIN','IV_MONTH','IV_YEAR','SALES_SITUATION'];
 
-let allData = [], allQuotations = [], monthlyReportData = [], charts = {}, currentMonth, currentYear, currentView = 'quotation', currentQtSource = 'QT26';
+let allData = [], allQuotations = [], monthlyReportData = [], charts = {}, currentMonth, currentYear, currentView = 'quotation', currentQtSource = 'QT26', currentMRTab = 'New Customer';
 
 const statusColors = {
   '1': '#8e8e93', '2': '#007aff', '3': '#069494', '4': '#af52de',
@@ -132,12 +132,23 @@ function setupUI() {
   const loggedUser = (sessionStorage.getItem('bd_logged_in') || '').toLowerCase();
   
   // Setup Quotation Sub-Tabs
-  document.querySelectorAll('.qt-tab-btn').forEach(btn => {
+  document.querySelectorAll('#qt-tabs-header .qt-tab-btn').forEach(btn => {
     btn.onclick = (e) => {
-      document.querySelectorAll('.qt-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#qt-tabs-header .qt-tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentQtSource = btn.dataset.source;
       if (typeof renderQuotation === 'function') renderQuotation();
+    };
+  });
+
+  // Setup Monthly Report Tabs
+  document.querySelectorAll('#mr-tabs .qt-tab-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      document.querySelectorAll('#mr-tabs .qt-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentMRTab = btn.dataset.tab;
+      mrCurrentPage = 1;
+      if (typeof renderMonthlyReport === 'function') renderMonthlyReport();
     };
   });
 
@@ -1708,7 +1719,7 @@ async function fetchMonthlyReportData() {
     const json = await res.json();
     const rows = json.values || [];
     
-    monthlyReportData = rows.slice(1).map(r => ({
+    monthlyReportData = rows.slice(2).map(r => ({
       month: r[0] || '',
       week: r[1] || '',
       status: r[2] || '',
@@ -1766,6 +1777,17 @@ function renderMonthlyReport() {
   if (fWeek) filtered = filtered.filter(r => r.week === fWeek);
   if (fStatus) filtered = filtered.filter(r => r.status === fStatus);
   if (fSearch) filtered = filtered.filter(r => (r.customer||'').toLowerCase().includes(fSearch) || (r.detail||'').toLowerCase().includes(fSearch));
+  
+  if (currentMRTab === 'New Customer') {
+    filtered = filtered.filter(r => (r.topic || '').trim().toLowerCase() === 'new customer');
+  } else if (currentMRTab === 'New Supplier') {
+    filtered = filtered.filter(r => (r.topic || '').trim().toLowerCase() === 'new supplier');
+  } else {
+    filtered = filtered.filter(r => {
+      const t = (r.topic || '').trim().toLowerCase();
+      return t !== 'new customer' && t !== 'new supplier';
+    });
+  }
   
   const total = filtered.length;
   const completed = filtered.filter(r => String(r.status||'').toLowerCase().includes('done') || String(r.status||'').toLowerCase().includes('complete') || String(r.status||'').includes('PO') || String(r.status||'').includes('Win')).length;

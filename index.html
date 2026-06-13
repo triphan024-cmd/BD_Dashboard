@@ -414,8 +414,13 @@
 
                 <!-- View: Monthly Report -->
                 <section class="view-section" id="view-monthly-report">
-                    <div class="report-header-bar">
+                    <div class="report-header-bar" style="display:flex; justify-content:space-between; align-items:center;">
                         <h2>Monthly Report</h2>
+                        <div class="qt-tabs-container" id="mr-tabs" style="margin:0; align-items:center;">
+                            <button class="qt-tab-btn active" data-tab="New Customer">New Customer</button>
+                            <button class="qt-tab-btn" data-tab="New Supplier">New Supplier</button>
+                            <button class="qt-tab-btn" data-tab="Others">Others</button>
+                        </div>
                     </div>
                     
                     <!-- KPI Grid -->
@@ -647,7 +652,7 @@
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
     <!-- Custom Scripts -->
-    <script src="app.js?v=74"></script>
+    <script src="app.js?v=78"></script>
 </body>
 </html>
 
