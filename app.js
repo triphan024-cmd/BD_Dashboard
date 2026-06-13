@@ -124,6 +124,10 @@ function setupUI() {
       if (qtAmountSummary) {
         qtAmountSummary.style.display = (currentView === 'quotation') ? 'flex' : 'none';
       }
+      const mrTabsHeader = document.getElementById('mr-tabs');
+      if (mrTabsHeader) {
+        mrTabsHeader.style.display = (currentView === 'monthly-report') ? 'flex' : 'none';
+      }
     };
   });
   
@@ -1833,10 +1837,10 @@ function renderMonthlyReport() {
 
 function getMRStatusClass(status) {
   const s = String(status||'').toLowerCase();
-  if(s.includes('done') || s.includes('complete') || s.includes('po') || s.includes('win')) return 'status-6';
-  if(s.includes('pending') || s.includes('waiting')) return 'status-7';
-  if(s.includes('fail') || s.includes('cancel') || s.includes('lost') || s.includes('stop')) return 'status-5';
-  if(s.includes('quoted')) return 'status-2';
+  if(s.includes('done') || s.includes('complete') || s.includes('po') || s.includes('win') || s.includes('4.')) return 'status-6';
+  if(s.includes('pending') || s.includes('waiting') || s.includes('3.')) return 'status-7';
+  if(s.includes('fail') || s.includes('cancel') || s.includes('lost') || s.includes('stop') || s.includes('5.')) return 'status-5';
+  if(s.includes('processing') || s.includes('doing') || s.includes('2.') || s.includes('quoted')) return 'status-2';
   return 'status-1';
 }
 
