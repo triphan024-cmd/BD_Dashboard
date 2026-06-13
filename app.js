@@ -1654,7 +1654,7 @@ function renderQuotationCharts() {
         ...chartDefaults(),
         indexAxis: 'y', // horizontal bar
         layout: {
-          padding: { right: 60, left: 100 } // Prevent labels from being cut off
+          padding: { right: 60, left: 0 }
         },
         plugins: {
           legend: { display: false },
