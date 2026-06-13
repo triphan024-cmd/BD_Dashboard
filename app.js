@@ -1666,7 +1666,13 @@ function renderQuotationCharts() {
         },
         scales: {
           x: { display: false, grid: { display: false } },
-          y: { grid: { display: false }, ticks: { color: c.text, font: { size: 11, family: 'var(--font-stack)' } } }
+          y: { 
+            grid: { display: false }, 
+            ticks: { color: c.text, font: { size: 11, family: 'var(--font-stack)' } },
+            afterFit: function(scaleInstance) {
+              scaleInstance.width = 80;
+            }
+          }
         }
       },
       plugins: [ChartDataLabels]
