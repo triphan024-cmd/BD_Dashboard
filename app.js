@@ -7,8 +7,7 @@ const CONFIG = {
   SALES_FILTER: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.SALES_FILTER) || 'Trí',
   API_KEY: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.API_KEY) || _k,
   ROWS_PER_PAGE: 20,
-  REPORT_SHEET_ID: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.REPORT_SHEET_ID) || '1UIqT7rWcfkaAJHZDR5Gzsb4LAcyvh2voVjwHDl7Be7U',
-  REPORT_SHEET_NAME: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.REPORT_SHEET_NAME) || 'Report',
+
   QT_SHEET_ID: (typeof BD_CONFIG !== 'undefined' && BD_CONFIG.QT_SHEET_ID) || '1TTB57jpVnERMZPd17kIcr8G-3eG_Yr43W95G0710Uy4'
 };
 
@@ -211,10 +210,8 @@ function updateMonthDisplay() {
   const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const mStr = `${monthNames[currentMonth-1]} ${currentYear}`;
   document.getElementById('current-month').textContent = mStr;
-  const reportLabel = document.getElementById('report-month-label');
-  if (reportLabel) reportLabel.textContent = mStr;
-  
-  if (typeof renderReportBoard === 'function') renderReportBoard();
+  const qtMonthEl = document.getElementById('qt-month-label');
+  if (qtMonthEl) qtMonthEl.textContent = mStr;
 }
 
 // ===== DATA FETCH =====
@@ -230,10 +227,7 @@ async function fetchData() {
     const poPromise = fetch(urlPO);
     const qtPromise = fetch(urlQT).then(r => r.ok ? r.json() : null).catch(() => null);
 
-    // Async fetching without blocking UI
-    if (typeof fetchReportData === 'function') {
-      fetchReportData().then(() => { if (typeof renderReportBoard === 'function') renderReportBoard(); }).catch(e => console.error(e));
-    }
+
     if (typeof fetchMonthlyReportData === 'function') {
       fetchMonthlyReportData().then(() => { if (typeof renderMonthlyReport === 'function') renderMonthlyReport(); }).catch(e => console.error(e));
     }
@@ -345,7 +339,7 @@ function renderAll() {
   if (typeof renderCustomerMarginTable === 'function') renderCustomerMarginTable();
   renderDetailTable();
   renderAnalytics();
-  if (typeof renderReportBoard === 'function') renderReportBoard();
+
   if (typeof renderQuotationSummary === 'function') renderQuotationSummary();
   if (typeof renderQuotationKPIs === 'function') renderQuotationKPIs();
   if (typeof renderQuotationCharts === 'function') renderQuotationCharts();
@@ -1171,126 +1165,6 @@ function renderPendingPOsChart() {
   });
 }
 
-// ===== REPORT BOARD =====
-let reportDataList = [];
-
-async function fetchReportData() {
-  try {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.REPORT_SHEET_ID}/values/${encodeURIComponent(CONFIG.REPORT_SHEET_NAME)}?key=${CONFIG.API_KEY}`;
-    const res = await fetch(url);
-    if (!res.ok) return;
-    const json = await res.json();
-    const rows = json.values || [];
-    if (rows.length > 2) {
-      reportDataList = rows.slice(2).map(r => ({
-        id: r[0]||'', type: r[1]||'', topic: r[2]||'', detail: r[3]||'',
-        status: r[4]||'', result: r[5]||'', action: r[6]||'', suggestion: r[7]||'',
-        pending: r[8]||'', date: r[9]||'', month: r[10]||'', year: r[11]||''
-      })).filter(x => x.type && x.topic);
-    }
-  } catch (e) {
-    console.error('Fetch Report Data failed:', e);
-  }
-}
-
-async function refreshReportData() {
-  const btn = document.getElementById('btn-refresh-report');
-  if (btn) btn.innerHTML = '<span>⏳</span> Refreshing...';
-  await fetchReportData();
-  renderReportBoard();
-  if (btn) btn.innerHTML = '<span>🔄</span> Refresh';
-  toast('Report data updated', 'success');
-}
-
-function renderReportBoard() {
-  const filtered = reportDataList.filter(r => {
-    let rm = parseInt(r.month, 10);
-    let ry = parseInt(r.year, 10);
-    return rm === currentMonth && ry === currentYear;
-  });
-  
-  const container = document.getElementById('report-timeline-container');
-  if (!container) return;
-  
-  if (filtered.length === 0) {
-    container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">No activities recorded for this month.</div>';
-    return;
-  }
-  
-  const renderCard = (c) => {
-    let isWin = c.type.toLowerCase().includes('win');
-    let itemClass = isWin ? 'win' : 'redflag';
-    
-    let topicClass = 'topic-other';
-    if (c.topic.toLowerCase().includes('project')) topicClass = 'topic-project';
-    else if (c.topic.toLowerCase().includes('hr')) topicClass = 'topic-hr';
-    else if (c.topic.toLowerCase().includes('po')) topicClass = 'topic-po';
-    
-    let statusHtml = '';
-    if (c.status) {
-      let statusLower = c.status.toLowerCase();
-      let statusClass = 'default';
-      if (statusLower.includes('completed')) statusClass = 'completed';
-      else if (statusLower.includes('processing')) statusClass = 'processing';
-      else if (statusLower.includes('pending')) statusClass = 'pending';
-      else if (statusLower.includes('cancelled')) statusClass = 'cancelled';
-      statusHtml = `<span class="status-badge ${statusClass}">${c.status}</span>`;
-    }
-    
-    return `
-      <div class="kanban-card ${itemClass}">
-        <div class="timeline-header" style="margin-bottom:10px;">
-          <div class="timeline-badges" style="display:flex; flex-wrap:wrap; gap:6px;">
-            <span class="badge-type ${itemClass}">${c.type}</span>
-            <span class="badge-topic ${topicClass}">${c.topic}</span>
-            ${statusHtml}
-          </div>
-        </div>
-        <div class="timeline-detail">${c.detail}</div>
-        ${c.result ? `<div class="timeline-box result"><strong>🎯 Result:</strong><br>${c.result}</div>` : ''}
-        ${c.action ? `<div class="timeline-box action"><strong>⚡ Action:</strong><br>${c.action}</div>` : ''}
-        ${c.suggestion ? `<div class="timeline-box suggestion" style="background:var(--bg-secondary); border-left:3px solid var(--accent-purple); margin-top:10px; padding:10px 14px; font-size:0.85rem; border-radius:6px; color:var(--text-primary);"><strong>💡 Suggest:</strong><br>${c.suggestion}</div>` : ''}
-        ${c.pending ? `<div class="timeline-box pending" style="background:rgba(239,68,68,0.05); border-left:3px solid var(--accent-rose); margin-top:10px; padding:10px 14px; font-size:0.85rem; border-radius:6px; color:var(--text-primary);"><strong>⏳ Pending:</strong><br><span style="color:var(--accent-rose); font-weight:600;">${c.pending}</span></div>` : ''}
-      </div>
-    `;
-  };
-  
-  const wins = filtered.filter(r => r.type.toLowerCase().includes('win'));
-  const flags = filtered.filter(r => r.type.toLowerCase().includes('red flag'));
-  
-  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const monthLabel = monthNames[currentMonth-1];
-
-  let html = '';
-  
-  if(wins.length > 0) {
-    html += `
-      <div style="margin-bottom: 40px;">
-        <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin: 20px 0; display:flex; align-items:center; gap:8px; border-bottom: 2px solid var(--border-glass); padding-bottom: 10px;">
-          <span style="font-size:1.5rem;">🏆</span> Key Wins & Achievements
-        </h3>
-        <div class="report-grid">
-          ${wins.map(renderCard).join('')}
-        </div>
-      </div>
-    `;
-  }
-  
-  if(flags.length > 0) {
-    html += `
-      <div style="margin-bottom: 40px;">
-        <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin: 20px 0; display:flex; align-items:center; gap:8px; border-bottom: 2px solid var(--border-glass); padding-bottom: 10px;">
-          <span style="font-size:1.5rem;">🚩</span> Red Flags & Pending Issues
-        </h3>
-        <div class="report-grid">
-          ${flags.map(renderCard).join('')}
-        </div>
-      </div>
-    `;
-  }
-  
-  container.innerHTML = html;
-}
 
 // ===== QUOTATION DATA =====
 async function fetchQuotationData(prefetchedJson) {
