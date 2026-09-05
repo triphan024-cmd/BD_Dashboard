@@ -88,6 +88,7 @@ function showLogin() {
 }
 
 function startDashboard() {
+  document.getElementById('login-modal').style.display = 'none';
   setupUI();
   fetchData();
 }
