@@ -169,12 +169,7 @@ function setupUI() {
     document.querySelectorAll('[data-view="quotation"]').forEach(el => el.style.display = 'none');
   }
 
-  // Report
-  if (['trinh', 'hue'].includes(loggedUser)) {
-    document.querySelectorAll('[data-view="report"]').forEach(el => el.style.display = 'none');
-  } else {
-    document.querySelectorAll('[data-view="report"]').forEach(el => el.style.display = '');
-  }
+
   
   // Month nav
   document.getElementById('prev-month').onclick = () => { currentMonth--; if(currentMonth<1){currentMonth=12;currentYear--;} updateMonthDisplay(); renderAll(); };
@@ -182,7 +177,7 @@ function setupUI() {
   // Logout
   document.getElementById('btn-settings').onclick = () => logout();
   // Search
-  document.getElementById('detail-search').oninput = () => renderDetailTable();
+
   // Chart type toggle
   document.querySelectorAll('.chart-btn').forEach(b => {
     b.onclick = () => { document.querySelectorAll('.chart-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderRevenueChart(b.dataset.chartType); };
@@ -337,8 +332,7 @@ function renderAll() {
   renderPendingDebtList();
   renderTopCustomersIV();
   if (typeof renderCustomerMarginTable === 'function') renderCustomerMarginTable();
-  renderDetailTable();
-  renderAnalytics();
+
 
   if (typeof renderQuotationSummary === 'function') renderQuotationSummary();
   if (typeof renderQuotationKPIs === 'function') renderQuotationKPIs();
@@ -921,118 +915,7 @@ function setCompare(id, cur, prev) {
   el.className = 'mkpi-compare ' + (d>=0?'up':'down');
 }
 
-// ===== TABLES =====
-function renderDetailTable(page) {
-  page = page || 1;
-  const search = (document.getElementById('detail-search').value||'').toLowerCase();
-  let data = allData.filter(r => !search || DISPLAY_COLS.some(c => (r[COLS[c]]||'').toLowerCase().includes(search)));
-  renderTable('detail', data, page);
-}
-
-function renderTable(prefix, data, page) {
-  const head = document.getElementById(prefix+'-table-head');
-  const body = document.getElementById(prefix+'-table-body');
-  const info = document.getElementById(prefix+'-table-info');
-  const pag = document.getElementById(prefix+'-pagination');
-
-  const colLabels = {ID_SO:'SO ID',STATUS:'Status',SO_DATE:'Date',CUSTOMER:'Customer',PO_NO:'PO No',NAME:'Product',QTY:'Qty',AMOUNT:'Amount',REVENUE:'Revenue',PROFIT:'Profit',MARGIN:'Margin',IV_MONTH:'Month',IV_YEAR:'Year',SALES_SITUATION:'Situation'};
-
-  head.innerHTML = DISPLAY_COLS.map(c => `<th>${colLabels[c]||c}</th>`).join('');
-
-  const total = data.length;
-  const totalPages = Math.ceil(total / CONFIG.ROWS_PER_PAGE) || 1;
-  page = Math.min(page, totalPages);
-  const start = (page-1) * CONFIG.ROWS_PER_PAGE;
-  const pageData = data.slice(start, start + CONFIG.ROWS_PER_PAGE);
-
-  body.innerHTML = pageData.map(r => '<tr>' + DISPLAY_COLS.map(c => {
-    const v = r[COLS[c]] || '';
-    if(c==='STATUS') return `<td><span class="status-badge ${getStatusClass(v)}">${v||'—'}</span></td>`;
-    if(['AMOUNT','REVENUE','PROFIT'].includes(c)) return `<td style="text-align:right;font-weight:600">${fmt(num(v))}</td>`;
-    if(c==='MARGIN') return `<td style="text-align:right">${v}</td>`;
-    return `<td>${v}</td>`;
-  }).join('') + '</tr>').join('') || '<tr><td colspan="'+DISPLAY_COLS.length+'" style="text-align:center;padding:40px;color:var(--text-muted)">No data</td></tr>';
-
-  info.textContent = `Showing ${pageData.length} / ${total} rows`;
-
-  let pagHTML = '';
-  for(let i=1;i<=Math.min(totalPages,7);i++) {
-    pagHTML += `<button class="${i===page?'active':''}" onclick="render${prefix==='monthly'?'Monthly':'Detail'}Table(${i})">${i}</button>`;
-  }
-  pag.innerHTML = pagHTML;
-}
-
-// ===== ANALYTICS =====
-function renderAnalytics() {
-  const c = getChartColors();
-  
-  // 1. Calculate OP Amount and Commission
-  let totalOp = 0;
-  let totalCom = 0;
-  
-  // Filter data for the current year (Analytics usually looks at current year or all time, let's use allData for current year)
-  allData.forEach(r => {
-    if (!isValidPO(r)) return;
-    if (r[COLS.IV_YEAR] === String(currentYear)) {
-      totalOp += num(r[COLS.OP_AMOUNT]);
-      totalCom += num(r[COLS.BM_SALES]);
-    }
-  });
-  
-  const elOp = document.getElementById('kpi-op');
-  if (elOp) elOp.textContent = fmtCurrency(totalOp);
-  
-  const elCom = document.getElementById('kpi-com');
-  if (elCom) elCom.textContent = fmtCurrency(totalCom);
-  
-  // 2. Pending Debt Detail Chart
-  const pendingMap = {};
-  allData.forEach(r => {
-    if (!isValidPO(r)) return;
-    // Consider debt for all valid POs that are not fully paid/completed
-    const st = (r[COLS.STATUS]||'').toLowerCase();
-    if (!st.includes('8.') && !st.includes('completed') && !st.includes('cancel') && !st.includes('deleted')) {
-      const cust = r[COLS.CUSTOMER] || 'N/A';
-      pendingMap[cust] = (pendingMap[cust]||0) + num(r[COLS.AMOUNT]);
-    }
-  });
-  
-  const sortedDebt = Object.entries(pendingMap).sort((a,b)=>b[1]-a[1]).slice(0, 10); // top 10
-  const debtLabels = sortedDebt.map(x => x[0]);
-  const debtData = sortedDebt.map(x => x[1]);
-  
-  if(charts.debtChart) charts.debtChart.destroy();
-  const canvasDebt = document.getElementById('chart-debt');
-  if (canvasDebt) {
-    charts.debtChart = new Chart(canvasDebt, {
-      type: 'bar',
-      data: {
-        labels: debtLabels,
-        datasets: [{
-          label: 'Pending Debt',
-          data: debtData,
-          backgroundColor: 'rgba(255, 59, 48, 0.25)', // rose with opacity
-          borderColor: c.rose,
-          borderWidth: 2,
-          borderRadius: 6
-        }]
-      },
-      options: {
-        ...chartDefaults(),
-        plugins: {
-          legend: { display: false },
-          datalabels: {
-            color: c.text,
-            anchor: 'end',
-            align: 'top',
-            formatter: (v) => fmtCurrency(v)
-          }
-        }
-      }
-    });
-  }
-}
-
+// 
 function renderPendingPOsChart() {
   const c = getChartColors();
   if(charts.ivPendingPOsCount) charts.ivPendingPOsCount.destroy();
