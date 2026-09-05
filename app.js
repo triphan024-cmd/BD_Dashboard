@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
   currentMonth = new Date().getMonth() + 1;
   currentYear = new Date().getFullYear();
   // Check if already logged in this session
-  if (sessionStorage.getItem('bd_logged_in')) {
+  if (localStorage.getItem('bd_logged_in')) {
     startDashboard();
   } else {
     showLogin();
@@ -78,7 +78,7 @@ function showLogin() {
       return;
     }
     document.getElementById('login-error').style.display = 'none';
-    sessionStorage.setItem('bd_logged_in', user);
+    localStorage.setItem('bd_logged_in', user);
     document.getElementById('login-modal').style.display = 'none';
     document.getElementById('loading-screen').style.display = 'flex';
     startDashboard();
@@ -93,7 +93,7 @@ function startDashboard() {
 }
 
 function logout() {
-  sessionStorage.removeItem('bd_logged_in');
+  localStorage.removeItem('bd_logged_in');
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-username').value = '';
   document.getElementById('login-password').value = '';
@@ -132,7 +132,7 @@ function setupUI() {
   
 
   // RBAC
-  const loggedUser = (sessionStorage.getItem('bd_logged_in') || '').toLowerCase();
+  const loggedUser = (localStorage.getItem('bd_logged_in') || '').toLowerCase();
   
   // Setup Quotation Sub-Tabs
   document.querySelectorAll('#qt-tabs-header .qt-tab-btn').forEach(btn => {
@@ -253,9 +253,7 @@ async function fetchData() {
   } catch(e) {
     console.error(e);
     document.getElementById('loading-screen').style.display = 'none';
-    toast('Error: ' + e.message, 'error');
-    document.getElementById('app').style.display = 'none';
-    logout();
+    toast('Error: ' + e.stack, 'error');
   }
 }
 
