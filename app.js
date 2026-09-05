@@ -870,50 +870,6 @@ function renderPOCountChart() {
   });
 }
 
-function renderTopCustomers() {
-  const md = getMonthData();
-  const map = {};
-  md.forEach(r => { const c = r[COLS.CUSTOMER]||'N/A'; map[c] = (map[c]||0) + num(r[COLS.REVENUE]); });
-  const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const el = document.getElementById('top-customers-list');
-  el.innerHTML = sorted.map(([name,val],i) =>
-    `<div class="ranking-item"><div class="ranking-rank">${i+1}</div><div class="ranking-name" title="${name}">${name}</div><div class="ranking-value">${fmtCurrency(val)}</div></div>`
-  ).join('') || '<p style="color:var(--text-muted);text-align:center;padding:40px">No data</p>';
-}
-
-// ===== MONTHLY VIEW =====
-function renderMonthlyView() {
-  const md = getMonthData();
-  const pm = currentMonth===1?12:currentMonth-1;
-  const py = currentMonth===1?currentYear-1:currentYear;
-  const prevMd = getMonthData(pm, py);
-
-  const rev = md.reduce((s,r)=>s+num(r[COLS.REVENUE]),0);
-  const prevRev = prevMd.reduce((s,r)=>s+num(r[COLS.REVENUE]),0);
-  const avg = md.length ? rev/md.length : 0;
-  const prevAvg = prevMd.length ? prevRev/prevMd.length : 0;
-
-  document.getElementById('mkpi-po-count').textContent = md.length;
-  document.getElementById('mkpi-revenue').textContent = fmtCurrency(rev);
-  document.getElementById('mkpi-new-customers').textContent = new Set(md.map(r=>r[COLS.CUSTOMER]).filter(Boolean)).size;
-  document.getElementById('mkpi-avg').textContent = fmtCurrency(avg);
-
-  setCompare('mkpi-po-compare', md.length, prevMd.length);
-  setCompare('mkpi-revenue-compare', rev, prevRev);
-  setCompare('mkpi-avg-compare', avg, prevAvg);
-
-  renderMonthlyTable();
-}
-
-function setCompare(id, cur, prev) {
-  const el = document.getElementById(id);
-  if(!prev) { el.textContent = '—'; el.className = 'mkpi-compare'; return; }
-  const d = ((cur-prev)/Math.abs(prev)*100).toFixed(1);
-  el.textContent = (d>=0?'↑ +':'↓ ') + d + '%';
-  el.className = 'mkpi-compare ' + (d>=0?'up':'down');
-}
-
-// 
 function renderPendingPOsChart() {
   const c = getChartColors();
   if(charts.ivPendingPOsCount) charts.ivPendingPOsCount.destroy();

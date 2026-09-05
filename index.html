@@ -72,14 +72,6 @@
                     <i data-lucide="circle-dollar-sign" class="nav-icon"></i>
                     <span class="nav-label">Revenue</span>
                 </a>
-                <a href="#" class="nav-item" data-view="details">
-                    <i data-lucide="list-collapse" class="nav-icon"></i>
-                    <span class="nav-label">PO Details</span>
-                </a>
-                <a href="#" class="nav-item" data-view="analytics">
-                    <i data-lucide="trending-up" class="nav-icon"></i>
-                    <span class="nav-label">Analytics</span>
-                </a>
 
                 <a href="#" class="nav-item" data-view="monthly-report">
                     <i data-lucide="calendar-days" class="nav-icon"></i>
@@ -269,130 +261,6 @@
 
             <!-- View: Analytics -->
             <div class="view-container">
-                <!-- View: Overview -->
-                <section id="view-overview" class="view-section">
-                    <!-- KPI Grid -->
-                    <div class="kpi-grid">
-                        <div class="kpi-card glass-card primary-gradient">
-                            <div class="kpi-icon-wrapper"><i data-lucide="circle-dollar-sign" class="kpi-icon"></i></div>
-                            <div class="kpi-info"><span class="kpi-label">Revenue</span><span class="kpi-value" id="kpi-revenue">—</span></div>
-                        </div>
-                        <div class="kpi-card glass-card">
-                            <div class="kpi-icon-wrapper accent-green"><i data-lucide="trending-up" class="kpi-icon"></i></div>
-                            <div class="kpi-info"><span class="kpi-label">Profit</span><span class="kpi-value" id="kpi-profit">—</span></div>
-                        </div>
-                        <div class="kpi-card glass-card">
-                            <div class="kpi-icon-wrapper accent-amber"><i data-lucide="target" class="kpi-icon"></i></div>
-                            <div class="kpi-info"><span class="kpi-label">Avg Margin</span><span class="kpi-value" id="kpi-margin">—</span></div>
-                        </div>
-                        <div class="kpi-card glass-card">
-                            <div class="kpi-icon-wrapper accent-purple"><i data-lucide="package" class="kpi-icon"></i></div>
-                            <div class="kpi-info"><span class="kpi-label">Total POs</span><span class="kpi-value" id="kpi-orders">—</span></div>
-                        </div>
-                    </div>
-
-                    <!-- Charts Row -->
-                    <div class="charts-row">
-                        <div class="chart-card glass-card">
-                            <div class="chart-header">
-                                <h3>Monthly Revenue</h3>
-                                <div class="chart-actions">
-                                    <button class="chart-btn" data-chart-type="bar">Bar</button>
-                                    <button class="chart-btn active" data-chart-type="line">Line</button>
-                                </div>
-                            </div>
-                            <div class="chart-body"><canvas id="chart-revenue"></canvas></div>
-                        </div>
-                        <div class="chart-card glass-card">
-                            <div class="chart-header">
-                                <h3>Top Customers</h3>
-                                <span class="chart-sub">Top 6</span>
-                            </div>
-                            <div class="chart-body"><canvas id="chart-customer"></canvas></div>
-                        </div>
-                    </div>
-
-                    <!-- Table Row -->
-                    <div class="card glass-card table-card">
-                        <div class="table-header">
-                            <h2>Recent Purchase Orders</h2>
-                        </div>
-                        <div class="table-container">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Customer</th>
-                                        <th>Project / Item</th>
-                                        <th style="text-align:right">Revenue</th>
-                                        <th style="text-align:right">Profit</th>
-                                        <th style="text-align:center">Margin</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="recent-orders-tbody">
-                                    <!-- Populated by JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- View: PO Received -->
-                <section id="view-details" class="view-section">
-                    <div class="kpi-grid" style="margin-bottom:24px;">
-                        <div class="kpi-card glass-card primary-gradient">
-                            <div class="kpi-icon-wrapper"><i data-lucide="circle-dollar-sign" class="kpi-icon"></i></div>
-                            <div class="kpi-info"><span class="kpi-label">Total Amount</span><span class="kpi-value" id="kpi-po-amount">—</span></div>
-                        </div>
-                    </div>
-                    
-                    <div class="charts-row">
-                        <div class="chart-card glass-card">
-                            <div class="chart-header">
-                                <h3>PO Amount by Month</h3>
-                                <div class="chart-actions">
-                                    <span id="chart-total-po-count" style="font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); margin-right: 10px; align-self: center;"></span>
-                                    <button class="chart-btn-po active" data-chart-type="bar">Bar</button>
-                                    <button class="chart-btn-po" data-chart-type="line">Line</button>
-                                </div>
-                            </div>
-                            <div class="chart-body"><canvas id="chart-po-monthly"></canvas></div>
-                        </div>
-                        <div class="chart-card glass-card">
-                            <div class="chart-header">
-                                <h3>PO Status</h3>
-                                <span class="chart-sub">Distribution</span>
-                            </div>
-                            <div class="chart-body"><canvas id="chart-status"></canvas></div>
-                        </div>
-                    </div>
-                    
-                    <div class="card glass-card table-card mt-24">
-                        <div class="table-header">
-                            <h2>Detailed PO Records</h2>
-                        </div>
-                        <div class="table-container">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>ID/SO</th>
-                                        <th>Customer</th>
-                                        <th>Item Name</th>
-                                        <th style="text-align:right">Amount</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="details-tbody">
-                                    <!-- Populated by JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-
-
 
                 <!-- View: Monthly Report -->
                 <section class="view-section" id="view-monthly-report">
@@ -606,7 +474,7 @@
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/highcharts-3d.js"></script>
     <!-- Custom Scripts -->
-    <script src="app.js?v=84"></script>
+    <script src="app.js?v=85"></script>
 </body>
 </html>
 
